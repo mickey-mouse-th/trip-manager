@@ -5,15 +5,17 @@ const http = require('http');
 
 const dir   = __dirname;
 const PORT  = 3000;
-const WATCH = ['Index.html', 'Style.html', 'Script.html'];
+const WATCH = ['Index.html', 'Style.html', 'Script.html', 'Login.html'];
 
 function build() {
   try {
     const style  = fs.readFileSync(path.join(dir, 'Style.html'),  'utf8');
     const script = fs.readFileSync(path.join(dir, 'Script.html'), 'utf8');
+    const login  = fs.readFileSync(path.join(dir, 'Login.html'),  'utf8');
     let   html   = fs.readFileSync(path.join(dir, 'Index.html'),  'utf8');
     html = html.replace("<?!= include('Style') ?>",  style);
     html = html.replace("<?!= include('Script') ?>", script);
+    html = html.replace("<?!= include('Login') ?>",  login);
     fs.writeFileSync(path.join(dir, 'preview.html'), html, 'utf8');
     console.log('[' + new Date().toLocaleTimeString() + '] ✅ rebuilt preview.html');
   } catch (e) {

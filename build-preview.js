@@ -18,10 +18,12 @@ const path = require('path');
 const dir    = __dirname;
 const style  = fs.readFileSync(path.join(dir, 'Style.html'),  'utf8');
 const script = fs.readFileSync(path.join(dir, 'Script.html'), 'utf8');
+const login  = fs.readFileSync(path.join(dir, 'Login.html'),  'utf8');
 let   html   = fs.readFileSync(path.join(dir, 'Index.html'),  'utf8');
 
 html = html.replace("<?!= include('Style') ?>",  style);
 html = html.replace("<?!= include('Script') ?>", script);
+html = html.replace("<?!= include('Login') ?>",  login);
 
 fs.writeFileSync(path.join(dir, 'preview.html'), html, 'utf8');
 console.log('✅  preview.html built — open it in your browser');
