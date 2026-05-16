@@ -145,3 +145,176 @@ function deleteSchedule(id) {
   }
   return { success: false, error: 'Schedule not found' };
 }
+
+// ─── Users sheet ─────────────────────────────────────────────────────────────
+
+const USERS_SHEET   = 'Users';
+const USERS_HEADERS = ['ID', 'Name', 'Password', 'Salt', 'Role', 'CreatedAt', 'UpdatedAt', 'LastLoginAt', 'CreatedBy', 'IsActive', 'Email', 'AuthMethod', 'Lang'];
+
+function getUsersSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(USERS_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(USERS_SHEET);
+    sheet.appendRow(USERS_HEADERS);
+    sheet.getRange(1, 1, 1, USERS_HEADERS.length)
+      .setFontWeight('bold').setBackground('#b45309').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+    // Seed default admin — password: admin123
+    const salt = Utilities.getUuid();
+    sheet.appendRow(['USER-1', 'admin', hashPassword('admin123', salt), salt, 'admin', new Date(), new Date(), '', 'system', true, '', 'local', 'en']);
+  }
+  return sheet;
+}
+
+function hashPassword(password, salt) {
+  const bytes = Utilities.computeDigest(
+    Utilities.DigestAlgorithm.SHA_256,
+    password + salt,
+    Utilities.Charset.UTF_8
+  );
+  return bytes.map(b => ('0' + (b & 0xff).toString(16)).slice(-2)).join('');
+}
+
+function loginUser(name, password) {
+  const sheet = getUsersSheet();
+  const data  = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[1]).toLowerCase() === String(name).toLowerCase() && row[9] === true) {
+      if (hashPassword(password, String(row[3])) === String(row[2])) {
+        sheet.getRange(i + 1, 8).setValue(new Date());
+        return { success: true, user: { id: String(row[0]), name: String(row[1]), role: String(row[4]), lang: String(row[12] || 'en') } };
+      }
+    }
+  }
+  return { success: false, error: 'Invalid username or password' };
+}
+
+function registerUser(name, password) {
+  if (!name || name.trim().length < 3)  return { success: false, error: 'Username must be at least 3 characters' };
+  if (!password || password.length < 6) return { success: false, error: 'Password must be at least 6 characters' };
+  const sheet = getUsersSheet();
+  const data  = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][1]).toLowerCase() === String(name).toLowerCase()) {
+      return { success: false, error: 'Username already taken' };
+    }
+  }
+  const id   = 'USER-' + Date.now();
+  const salt = Utilities.getUuid();
+  const now  = new Date();
+  sheet.appendRow([id, name.trim(), hashPassword(password, salt), salt, 'viewer', now, now, '', 'self', true, '', 'local', 'en']);
+  return { success: true };
+}
+
+function getUsers() {
+  const sheet = getUsersSheet();
+  const data  = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  return data.slice(1).map(row => ({
+    id:          String(row[0]),
+    name:        String(row[1]),
+    role:        String(row[4]),
+    createdAt:   row[5] ? Utilities.formatDate(new Date(row[5]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+    lastLoginAt: row[7] ? Utilities.formatDate(new Date(row[7]), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm') : '—',
+    isActive:    !!row[9],
+    email:       String(row[10] || ''),
+    authMethod:  String(row[11] || 'local'),
+    lang:        String(row[12] || 'en'),
+  }));
+}
+
+function updateUser(userId, updates) {
+  const sheet = getUsersSheet();
+  const data  = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(userId)) {
+      if (updates.role     !== undefined) sheet.getRange(i + 1, 5).setValue(updates.role);
+      if (updates.isActive !== undefined) sheet.getRange(i + 1, 10).setValue(updates.isActive);
+      sheet.getRange(i + 1, 7).setValue(new Date());
+      return { success: true };
+    }
+  }
+  return { success: false, error: 'User not found' };
+}
+
+function getGoogleUser() {
+  try {
+    const email = Session.getActiveUser().getEmail();
+    return { success: true, email: email || '' };
+  } catch (e) {
+    return { success: false, email: '' };
+  }
+}
+
+function loginWithGoogle(email) {
+  if (!email) return { success: false, error: 'No email provided' };
+  const sheet = getUsersSheet();
+  const data  = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[10]).toLowerCase() === String(email).toLowerCase() &&
+        String(row[11]) === 'google' && row[9] === true) {
+      sheet.getRange(i + 1, 8).setValue(new Date());
+      return { success: true, user: { id: String(row[0]), name: String(row[1]), role: String(row[4]), lang: String(row[12] || 'en') } };
+    }
+  }
+  return { success: false, error: 'not_found', email: email };
+}
+
+function registerWithGoogle(email, name) {
+  if (!email) return { success: false, error: 'No email provided' };
+  if (!name || name.trim().length < 2) return { success: false, error: 'Name must be at least 2 characters' };
+  const sheet = getUsersSheet();
+  const data  = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][10]).toLowerCase() === String(email).toLowerCase()) {
+      return { success: false, error: 'This Google account is already registered' };
+    }
+    if (String(data[i][1]).toLowerCase() === String(name.trim()).toLowerCase()) {
+      return { success: false, error: 'Display name already taken' };
+    }
+  }
+  const id  = 'USER-' + Date.now();
+  const now = new Date();
+  sheet.appendRow([id, name.trim(), '', '', 'viewer', now, now, now, 'google-oauth', true, email, 'google', 'en']);
+  return { success: true, user: { id: id, name: name.trim(), role: 'viewer', lang: 'en' } };
+}
+
+function updateProfile(userId, updates) {
+  const sheet = getUsersSheet();
+  const data  = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === String(userId)) {
+      const row = data[i];
+      if (updates.name !== undefined) {
+        const newName = String(updates.name).trim();
+        if (newName.length < 2) return { success: false, error: 'Name must be at least 2 characters' };
+        for (let j = 1; j < data.length; j++) {
+          if (j !== i && String(data[j][1]).toLowerCase() === newName.toLowerCase()) {
+            return { success: false, error: 'Name already taken' };
+          }
+        }
+        sheet.getRange(i + 1, 2).setValue(newName);
+      }
+      if (updates.newPassword !== undefined) {
+        if (String(row[11]) !== 'local') return { success: false, error: 'Cannot change password for Google accounts' };
+        if (!updates.currentPassword) return { success: false, error: 'Current password required' };
+        if (hashPassword(updates.currentPassword, String(row[3])) !== String(row[2])) {
+          return { success: false, error: 'Current password is incorrect' };
+        }
+        if (updates.newPassword.length < 6) return { success: false, error: 'New password must be at least 6 characters' };
+        const salt = Utilities.getUuid();
+        sheet.getRange(i + 1, 3).setValue(hashPassword(updates.newPassword, salt));
+        sheet.getRange(i + 1, 4).setValue(salt);
+      }
+      if (updates.lang !== undefined) {
+        sheet.getRange(i + 1, 13).setValue(updates.lang);
+      }
+      sheet.getRange(i + 1, 7).setValue(new Date());
+      return { success: true };
+    }
+  }
+  return { success: false, error: 'User not found' };
+}

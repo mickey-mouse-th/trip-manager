@@ -8,6 +8,13 @@
   function setupMock() {
     var TRIP_KEY  = 'trip-mgr-trips';
     var SCHED_KEY = 'trip-mgr-scheds';
+    var USER_KEY  = 'trip-mgr-users';
+
+    var SAMPLE_USERS = [
+      { id:'USER-1', name:'admin',   password:'admin123', role:'admin',  createdAt:'2025-01-01', lastLoginAt:'—', isActive:true, email:'', authMethod:'local', lang:'en' },
+      { id:'USER-2', name:'staff1',  password:'staff123', role:'staff',  createdAt:'2025-01-02', lastLoginAt:'—', isActive:true, email:'', authMethod:'local', lang:'en' },
+      { id:'USER-3', name:'viewer1', password:'view123',  role:'viewer', createdAt:'2025-01-03', lastLoginAt:'—', isActive:true, email:'', authMethod:'local', lang:'en' },
+    ];
 
     var SAMPLE_TRIPS = [
       { id:'TRIP-1', name:'Tokyo Adventure',  destination:'Tokyo, Japan',         startDate:'2025-07-01', endDate:'2025-07-14', status:'Planning',  notes:'Cherry blossom season' },
@@ -98,10 +105,135 @@
             saveScheds($.grep(loadScheds(), function (s) { return s.id !== id; }));
             _ok && _ok({ success: true });
           }, 250);
+        },
+
+        // ── Auth ──
+        loginUser: function (name, password) {
+          setTimeout(function () {
+            var users = loadUsers();
+            var found = null;
+            $.each(users, function (_, u) {
+              if (u.name.toLowerCase() === name.toLowerCase() && u.password === password && u.isActive) {
+                found = u; return false;
+              }
+            });
+            if (found) {
+              _ok && _ok({ success: true, user: { id: found.id, name: found.name, role: found.role, lang: found.lang || 'en' } });
+            } else {
+              _ok && _ok({ success: false, error: 'Invalid username or password' });
+            }
+          }, 400);
+        },
+        registerUser: function (name, password) {
+          setTimeout(function () {
+            if (!name || name.trim().length < 3) { _ok && _ok({ success: false, error: 'Username must be at least 3 characters' }); return; }
+            if (!password || password.length < 6)  { _ok && _ok({ success: false, error: 'Password must be at least 6 characters' }); return; }
+            var users = loadUsers();
+            var taken = $.grep(users, function (u) { return u.name.toLowerCase() === name.toLowerCase(); });
+            if (taken.length) { _ok && _ok({ success: false, error: 'Username already taken' }); return; }
+            users.push({ id: 'USER-' + Date.now(), name: name.trim(), password: password, role: 'viewer', createdAt: new Date().toISOString().slice(0,10), lastLoginAt: '—', isActive: true });
+            saveUsers(users);
+            _ok && _ok({ success: true });
+          }, 400);
+        },
+        getUsers: function () {
+          setTimeout(function () {
+            _ok && _ok(loadUsers().map(function (u) {
+              return { id: u.id, name: u.name, role: u.role, createdAt: u.createdAt, lastLoginAt: u.lastLoginAt, isActive: u.isActive };
+            }));
+          }, 300);
+        },
+        updateUser: function (userId, updates) {
+          setTimeout(function () {
+            var users = loadUsers();
+            $.each(users, function (i, u) {
+              if (u.id === userId) {
+                if (updates.role     !== undefined) users[i].role     = updates.role;
+                if (updates.isActive !== undefined) users[i].isActive = updates.isActive;
+                return false;
+              }
+            });
+            saveUsers(users);
+            _ok && _ok({ success: true });
+          }, 250);
+        },
+
+        // ── Google OAuth (mock) ──
+        getGoogleUser: function () {
+          setTimeout(function () {
+            // In local preview there's no real Google session — simulate no email
+            _ok && _ok({ success: true, email: '' });
+          }, 200);
+        },
+        loginWithGoogle: function (email) {
+          setTimeout(function () {
+            var users = loadUsers();
+            var found = null;
+            $.each(users, function (_, u) {
+              if (u.email && u.email.toLowerCase() === email.toLowerCase() && u.authMethod === 'google' && u.isActive) {
+                found = u; return false;
+              }
+            });
+            if (found) {
+              _ok && _ok({ success: true, user: { id: found.id, name: found.name, role: found.role, lang: found.lang || 'en' } });
+            } else {
+              _ok && _ok({ success: false, error: 'not_found', email: email });
+            }
+          }, 400);
+        },
+        registerWithGoogle: function (email, name) {
+          setTimeout(function () {
+            if (!name || name.trim().length < 2) { _ok && _ok({ success: false, error: 'Name must be at least 2 characters' }); return; }
+            var users = loadUsers();
+            var taken = $.grep(users, function (u) { return u.email && u.email.toLowerCase() === email.toLowerCase(); });
+            if (taken.length) { _ok && _ok({ success: false, error: 'This Google account is already registered' }); return; }
+            var nameTaken = $.grep(users, function (u) { return u.name.toLowerCase() === name.trim().toLowerCase(); });
+            if (nameTaken.length) { _ok && _ok({ success: false, error: 'Display name already taken' }); return; }
+            var id = 'USER-' + Date.now();
+            var u = { id: id, name: name.trim(), password: '', role: 'viewer', createdAt: new Date().toISOString().slice(0,10), lastLoginAt: '—', isActive: true, email: email, authMethod: 'google', lang: 'en' };
+            users.push(u);
+            saveUsers(users);
+            _ok && _ok({ success: true, user: { id: id, name: name.trim(), role: 'viewer', lang: 'en' } });
+          }, 400);
+        },
+        updateProfile: function (userId, updates) {
+          setTimeout(function () {
+            var users = loadUsers();
+            var found = false;
+            $.each(users, function (i, u) {
+              if (u.id === userId) {
+                if (updates.name !== undefined) {
+                  var n = String(updates.name).trim();
+                  if (n.length < 2) { _ok && _ok({ success: false, error: 'Name must be at least 2 characters' }); return false; }
+                  var nameTaken = $.grep(users, function (x, j) { return j !== i && x.name.toLowerCase() === n.toLowerCase(); });
+                  if (nameTaken.length) { _ok && _ok({ success: false, error: 'Name already taken' }); return false; }
+                  users[i].name = n;
+                }
+                if (updates.newPassword !== undefined) {
+                  if (u.authMethod === 'google') { _ok && _ok({ success: false, error: 'Cannot change password for Google accounts' }); return false; }
+                  if (!updates.currentPassword || updates.currentPassword !== u.password) { _ok && _ok({ success: false, error: 'Current password is incorrect' }); return false; }
+                  if (updates.newPassword.length < 6) { _ok && _ok({ success: false, error: 'New password must be at least 6 characters' }); return false; }
+                  users[i].password = updates.newPassword;
+                }
+                if (updates.lang !== undefined) users[i].lang = updates.lang;
+                found = true;
+                return false;
+              }
+            });
+            if (found) { saveUsers(users); _ok && _ok({ success: true }); }
+            else { _ok && _ok({ success: false, error: 'User not found' }); }
+          }, 300);
         }
       };
       return r;
     }
+
+    function loadUsers() {
+      var raw = localStorage.getItem(USER_KEY);
+      if (!raw) { localStorage.setItem(USER_KEY, JSON.stringify(SAMPLE_USERS)); return SAMPLE_USERS.slice(); }
+      return JSON.parse(raw);
+    }
+    function saveUsers(users) { localStorage.setItem(USER_KEY, JSON.stringify(users)); }
 
     window.google = {
       script: {
@@ -114,6 +246,7 @@
   }
 
   // ── State ────────────────────────────────────────────────
+  var currentUser     = null;
   var allTrips        = [];
   var editingId       = null;
   var pendingDeleteId = null;
@@ -124,6 +257,270 @@
   var allSchedules      = [];
   var editingSchedId    = null;
   var pendingSchedDelId = null;
+
+  // ── I18N ─────────────────────────────────────────────────
+  var I18N = {
+    en: {
+      // filter pills
+      allTrips:'All', planning:'Planning', active:'Active', done:'Done', cancelled:'Cancelled',
+      // search
+      searchPlaceholder:'Search trips…',
+      // trip CRUD
+      addTrip:'New Trip', addTripBtn:'Add Trip',
+      addTripTitle:'Add Trip', editTripTitle:'Edit Trip',
+      saveTrip:'Save Trip', updateTrip:'Update Trip',
+      // card actions
+      edit:'Edit', plan:'Plan', delete:'Delete',
+      // schedule CRUD
+      addSchedTitle:'Add Schedule', editSchedTitle:'Edit Schedule',
+      update:'Update',
+      // empty / loading
+      noTrips:'No trips found', noTripsDesc:'Add your first trip or clear the filters.',
+      loading:'Loading your trips…', loadingScheds:'Loading schedules…',
+      addSchedule:'Add First Schedule', noSchedules:'No schedules yet',
+      // header
+      users:'Users', myProfile:'My Profile', signOut:'Sign Out',
+      // profile
+      profileTitle:'My Profile', saveChanges:'Save Changes',
+      // buttons
+      cancel:'Cancel', save:'Save',
+      // status labels (Select2 options)
+      statusAll:'All Status',
+      statusPlanning:'Planning', statusActive:'Active',
+      statusCompleted:'Completed', statusCancelled:'Cancelled',
+      statusConfirmed:'Confirmed', statusDone:'Done',
+      // validation
+      fillRequired:'Please fill required fields',
+      // form labels & placeholders
+      labelTripName:'Trip Name', labelDestination:'Destination',
+      labelStartDate:'Start Date', labelEndDate:'End Date',
+      labelStatus:'Status', labelNotes:'Notes',
+      phTripName:'e.g. Summer in Japan', phDestination:'e.g. Tokyo, Japan',
+      phNotes:'Any notes about this trip…',
+      deleteTripQ:'Delete Trip?', deleteTripBody:'will be permanently deleted. This cannot be undone.',
+      delete:'Delete',
+      labelDateTime:'Date & Time', labelDetail:'Detail',
+      labelTransport:'Transport', labelCost:'Cost (฿)',
+      labelMapLink:'Map Link', labelNote:'Note',
+      phDetail:'e.g. Visit Senso-ji Temple', phTransport:'e.g. BTS → Taxi',
+      phNote:'Additional notes…',
+      deleteSchedQ:'Delete Schedule?', deleteBody:'will be permanently deleted.',
+      labelDisplayName:'Display Name', phDisplayName:'Your display name',
+      labelChangePassword:'Change Password',
+      labelCurrentPw:'Current Password', phCurrentPw:'Enter current password',
+      labelNewPw:'New Password',
+      labelLanguage:'Language',
+    },
+    th: {
+      allTrips:'ทั้งหมด', planning:'วางแผน', active:'กำลังเดินทาง', done:'เสร็จแล้ว', cancelled:'ยกเลิก',
+      searchPlaceholder:'ค้นหาทริป…',
+      addTrip:'เพิ่มทริป', addTripBtn:'เพิ่มทริป',
+      addTripTitle:'เพิ่มทริป', editTripTitle:'แก้ไขทริป',
+      saveTrip:'บันทึกทริป', updateTrip:'อัปเดตทริป',
+      edit:'แก้ไข', plan:'แผน', delete:'ลบ',
+      addSchedTitle:'เพิ่มกำหนดการ', editSchedTitle:'แก้ไขกำหนดการ',
+      update:'อัปเดต',
+      noTrips:'ไม่พบทริป', noTripsDesc:'เพิ่มทริปแรกหรือล้างตัวกรอง',
+      loading:'กำลังโหลดทริป…', loadingScheds:'กำลังโหลดกำหนดการ…',
+      addSchedule:'เพิ่มกำหนดการแรก', noSchedules:'ยังไม่มีกำหนดการ',
+      users:'ผู้ใช้', myProfile:'โปรไฟล์', signOut:'ออกจากระบบ',
+      profileTitle:'โปรไฟล์ของฉัน', saveChanges:'บันทึกการเปลี่ยนแปลง',
+      cancel:'ยกเลิก', save:'บันทึก',
+      statusAll:'ทุกสถานะ',
+      statusPlanning:'วางแผน', statusActive:'กำลังเดินทาง',
+      statusCompleted:'เสร็จแล้ว', statusCancelled:'ยกเลิก',
+      statusConfirmed:'ยืนยันแล้ว', statusDone:'เสร็จสิ้น',
+      fillRequired:'กรุณากรอกข้อมูลที่จำเป็น',
+      labelTripName:'ชื่อทริป', labelDestination:'ปลายทาง',
+      labelStartDate:'วันเริ่มต้น', labelEndDate:'วันสิ้นสุด',
+      labelStatus:'สถานะ', labelNotes:'หมายเหตุ',
+      phTripName:'เช่น ฤดูร้อนที่ญี่ปุ่น', phDestination:'เช่น โตเกียว ประเทศญี่ปุ่น',
+      phNotes:'หมายเหตุเพิ่มเติมเกี่ยวกับทริปนี้…',
+      deleteTripQ:'ลบทริป?', deleteTripBody:'จะถูกลบอย่างถาวร ไม่สามารถย้อนกลับได้',
+      delete:'ลบ',
+      labelDateTime:'วันที่ & เวลา', labelDetail:'รายละเอียด',
+      labelTransport:'การเดินทาง', labelCost:'ค่าใช้จ่าย (฿)',
+      labelMapLink:'ลิงก์แผนที่', labelNote:'หมายเหตุ',
+      phDetail:'เช่น ชมวัดเซ็นโซจิ', phTransport:'เช่น BTS → แท็กซี่',
+      phNote:'หมายเหตุเพิ่มเติม…',
+      deleteSchedQ:'ลบกำหนดการ?', deleteBody:'จะถูกลบอย่างถาวร',
+      labelDisplayName:'ชื่อที่แสดง', phDisplayName:'ชื่อของคุณ',
+      labelChangePassword:'เปลี่ยนรหัสผ่าน',
+      labelCurrentPw:'รหัสผ่านปัจจุบัน', phCurrentPw:'ใส่รหัสผ่านปัจจุบัน',
+      labelNewPw:'รหัสผ่านใหม่',
+      labelLanguage:'ภาษา',
+    },
+    lo: {
+      allTrips:'ທັງໝົດ', planning:'ວາງແຜນ', active:'ກຳລັງເດີນທາງ', done:'ສຳເລັດ', cancelled:'ຍົກເລີກ',
+      searchPlaceholder:'ຄົ້ນຫາການເດີນທາງ…',
+      addTrip:'ເພີ່ມການເດີນທາງ', addTripBtn:'ເພີ່ມ',
+      addTripTitle:'ເພີ່ມການເດີນທາງ', editTripTitle:'ແກ້ໄຂການເດີນທາງ',
+      saveTrip:'ບັນທຶກ', updateTrip:'ອັບເດດ',
+      edit:'ແກ້ໄຂ', plan:'ແຜນ', delete:'ລຶບ',
+      addSchedTitle:'ເພີ່ມຕາຕະລາງ', editSchedTitle:'ແກ້ໄຂຕາຕະລາງ',
+      update:'ອັບເດດ',
+      noTrips:'ບໍ່ພົບການເດີນທາງ', noTripsDesc:'ເພີ່ມການເດີນທາງທຳອິດ',
+      loading:'ກຳລັງໂຫຼດ…', loadingScheds:'ກຳລັງໂຫຼດຕາຕະລາງ…',
+      addSchedule:'ເພີ່ມຕາຕະລາງທຳອິດ', noSchedules:'ຍັງບໍ່ມີຕາຕະລາງ',
+      users:'ຜູ້ໃຊ້', myProfile:'ໂປຣໄຟລ໌', signOut:'ອອກຈາກລະບົບ',
+      profileTitle:'ໂປຣໄຟລ໌ຂອງຂ້ອຍ', saveChanges:'ບັນທຶກການປ່ຽນແປງ',
+      cancel:'ຍົກເລີກ', save:'ບັນທຶກ',
+      statusAll:'ທຸກສະຖານະ',
+      statusPlanning:'ວາງແຜນ', statusActive:'ກຳລັງເດີນທາງ',
+      statusCompleted:'ສຳເລັດ', statusCancelled:'ຍົກເລີກ',
+      statusConfirmed:'ຢືນຢັນແລ້ວ', statusDone:'ສຳເລັດສິ້ນ',
+      fillRequired:'ກະລຸນາຕື່ມຂໍ້ມູນທີ່ຈຳເປັນ',
+      labelTripName:'ຊື່ການເດີນທາງ', labelDestination:'ຈຸດໝາຍປາຍທາງ',
+      labelStartDate:'ວັນທີເລີ່ມ', labelEndDate:'ວັນທີສິ້ນສຸດ',
+      labelStatus:'ສະຖານະ', labelNotes:'ໝາຍເຫດ',
+      phTripName:'ຕ.ຢ. ຮ້ອນຢູ່ຍີ່ປຸ່ນ', phDestination:'ຕ.ຢ. ໂຕກຽວ, ຍີ່ປຸ່ນ',
+      phNotes:'ໝາຍເຫດເພີ່ມເຕີມ…',
+      deleteTripQ:'ລຶບການເດີນທາງ?', deleteTripBody:'ຈະຖືກລຶບຖາວອນ ບໍ່ສາມາດກູ້ຄືນໄດ້',
+      delete:'ລຶບ',
+      labelDateTime:'ວັນທີ & ເວລາ', labelDetail:'ລາຍລະອຽດ',
+      labelTransport:'ການຂົນສົ່ງ', labelCost:'ຄ່າໃຊ້ຈ່າຍ (฿)',
+      labelMapLink:'ລິ້ງແຜນທີ່', labelNote:'ໝາຍເຫດ',
+      phDetail:'ຕ.ຢ. ໄປຢ້ຽມວັດ Senso-ji', phTransport:'ຕ.ຢ. BTS → ແທັກຊີ',
+      phNote:'ໝາຍເຫດເພີ່ມເຕີມ…',
+      deleteSchedQ:'ລຶບຕາຕະລາງ?', deleteBody:'ຈະຖືກລຶບຖາວອນ',
+      labelDisplayName:'ຊື່ທີ່ສະແດງ', phDisplayName:'ຊື່ຂອງທ່ານ',
+      labelChangePassword:'ປ່ຽນລະຫັດຜ່ານ',
+      labelCurrentPw:'ລະຫັດຜ່ານປັດຈຸບັນ', phCurrentPw:'ໃສ່ລະຫັດຜ່ານປັດຈຸບັນ',
+      labelNewPw:'ລະຫັດຜ່ານໃໝ່',
+      labelLanguage:'ພາສາ',
+    },
+    ja: {
+      allTrips:'すべて', planning:'計画中', active:'旅行中', done:'完了', cancelled:'キャンセル',
+      searchPlaceholder:'旅行を検索…',
+      addTrip:'旅行を追加', addTripBtn:'追加',
+      addTripTitle:'旅行を追加', editTripTitle:'旅行を編集',
+      saveTrip:'保存', updateTrip:'更新',
+      edit:'編集', plan:'計画', delete:'削除',
+      addSchedTitle:'スケジュールを追加', editSchedTitle:'スケジュールを編集',
+      update:'更新',
+      noTrips:'旅行が見つかりません', noTripsDesc:'最初の旅行を追加するか、フィルターをクリアしてください。',
+      loading:'旅行を読み込み中…', loadingScheds:'スケジュールを読み込み中…',
+      addSchedule:'最初のスケジュールを追加', noSchedules:'スケジュールはまだありません',
+      users:'ユーザー', myProfile:'プロフィール', signOut:'サインアウト',
+      profileTitle:'マイプロフィール', saveChanges:'変更を保存',
+      cancel:'キャンセル', save:'保存',
+      statusAll:'すべてのステータス',
+      statusPlanning:'計画中', statusActive:'旅行中',
+      statusCompleted:'完了', statusCancelled:'キャンセル',
+      statusConfirmed:'確認済み', statusDone:'終了',
+      fillRequired:'必須項目を入力してください',
+      labelTripName:'旅行名', labelDestination:'目的地',
+      labelStartDate:'開始日', labelEndDate:'終了日',
+      labelStatus:'ステータス', labelNotes:'メモ',
+      phTripName:'例：日本の夏旅', phDestination:'例：東京、日本',
+      phNotes:'この旅行についてのメモ…',
+      deleteTripQ:'旅行を削除?', deleteTripBody:'は永久に削除されます。元に戻せません。',
+      delete:'削除',
+      labelDateTime:'日時', labelDetail:'詳細',
+      labelTransport:'交通手段', labelCost:'費用 (฿)',
+      labelMapLink:'マップリンク', labelNote:'ノート',
+      phDetail:'例：浅草寺を訪問', phTransport:'例：BTS → タクシー',
+      phNote:'追加メモ…',
+      deleteSchedQ:'スケジュールを削除?', deleteBody:'は永久に削除されます。',
+      labelDisplayName:'表示名', phDisplayName:'表示名を入力',
+      labelChangePassword:'パスワード変更',
+      labelCurrentPw:'現在のパスワード', phCurrentPw:'現在のパスワードを入力',
+      labelNewPw:'新しいパスワード',
+      labelLanguage:'言語',
+    },
+    zh: {
+      allTrips:'全部', planning:'计划中', active:'进行中', done:'已完成', cancelled:'已取消',
+      searchPlaceholder:'搜索行程…',
+      addTrip:'添加行程', addTripBtn:'添加',
+      addTripTitle:'添加行程', editTripTitle:'编辑行程',
+      saveTrip:'保存', updateTrip:'更新',
+      edit:'编辑', plan:'计划', delete:'删除',
+      addSchedTitle:'添加日程', editSchedTitle:'编辑日程',
+      update:'更新',
+      noTrips:'未找到行程', noTripsDesc:'添加您的第一个行程或清除筛选器。',
+      loading:'正在加载行程…', loadingScheds:'正在加载日程…',
+      addSchedule:'添加第一个日程', noSchedules:'暂无日程',
+      users:'用户', myProfile:'个人资料', signOut:'退出',
+      profileTitle:'我的资料', saveChanges:'保存更改',
+      cancel:'取消', save:'保存',
+      statusAll:'所有状态',
+      statusPlanning:'计划中', statusActive:'进行中',
+      statusCompleted:'已完成', statusCancelled:'已取消',
+      statusConfirmed:'已确认', statusDone:'已结束',
+      fillRequired:'请填写必填项',
+      labelTripName:'行程名', labelDestination:'目的地',
+      labelStartDate:'开始日期', labelEndDate:'结束日期',
+      labelStatus:'状态', labelNotes:'备注',
+      phTripName:'例：日本夏日之旅', phDestination:'例：东京，日本',
+      phNotes:'关于此行程的备注…',
+      deleteTripQ:'删除行程?', deleteTripBody:'将被永久删除。此操作无法撤销。',
+      delete:'删除',
+      labelDateTime:'日期和时间', labelDetail:'详情',
+      labelTransport:'交通方式', labelCost:'费用 (฿)',
+      labelMapLink:'地图链接', labelNote:'备注',
+      phDetail:'例：参观浅草寺', phTransport:'例：BTS → 出租车',
+      phNote:'额外备注…',
+      deleteSchedQ:'删除日程?', deleteBody:'将被永久删除。',
+      labelDisplayName:'显示名称', phDisplayName:'您的显示名称',
+      labelChangePassword:'修改密码',
+      labelCurrentPw:'当前密码', phCurrentPw:'输入当前密码',
+      labelNewPw:'新密码',
+      labelLanguage:'语言',
+    },
+  };
+
+  function getCurrentLang() {
+    return (currentUser && currentUser.lang) || 'en';
+  }
+
+  function t(key) {
+    var lang = getCurrentLang();
+    return (I18N[lang] && I18N[lang][key]) || I18N['en'][key] || key;
+  }
+
+  function applyTranslations() {
+    // Loop all data-i18n elements
+    $('[data-i18n]').each(function () {
+      $(this).text(t($(this).data('i18n')));
+    });
+    // Loop all placeholder translations
+    $('[data-i18n-ph]').each(function () {
+      $(this).attr('placeholder', t($(this).data('i18n-ph')));
+    });
+
+    // Select2 option labels (options can't use data-i18n — Select2 renders its own DOM)
+    updateSelectOptions('#filter-status', [
+      { val:'',          key:'statusAll' },
+      { val:'Planning',  key:'statusPlanning' },
+      { val:'Active',    key:'statusActive' },
+      { val:'Completed', key:'statusCompleted' },
+      { val:'Cancelled', key:'statusCancelled' },
+    ]);
+    updateSelectOptions('#field-status', [
+      { val:'Planning',  key:'statusPlanning' },
+      { val:'Active',    key:'statusActive' },
+      { val:'Completed', key:'statusCompleted' },
+      { val:'Cancelled', key:'statusCancelled' },
+    ]);
+    updateSelectOptions('#sf-status', [
+      { val:'Planning',  key:'statusPlanning' },
+      { val:'Confirmed', key:'statusConfirmed' },
+      { val:'Done',      key:'statusDone' },
+      { val:'Cancelled', key:'statusCancelled' },
+    ]);
+
+    renderTrips();
+  }
+
+  function updateSelectOptions(selector, pairs) {
+    var $sel = $(selector);
+    if (!$sel.length) return;
+    var current = $sel.val();
+    $.each(pairs, function (_, p) {
+      $sel.find('option[value="' + p.val + '"]').text(t(p.key));
+    });
+    $sel.val(current).trigger('change.select2');
+  }
 
   // ── DOM shortcuts ────────────────────────────────────────
   var $tripList     = $('#trip-list');
@@ -336,14 +733,14 @@
               '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>',
               '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
             '</svg>',
-            'Edit',
+            t('edit'),
           '</button>',
           '<button class="card-action-btn sched" data-action="schedule">',
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">',
               '<rect x="3" y="4" width="18" height="18" rx="2"/>',
               '<line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
             '</svg>',
-            'Plan',
+            t('plan'),
           '</button>',
           '<button class="card-action-btn del" data-action="delete">',
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">',
@@ -352,7 +749,7 @@
               '<path d="M10 11v6"/><path d="M14 11v6"/>',
               '<path d="M9 6V4h6v2"/>',
             '</svg>',
-            'Delete',
+            t('delete'),
           '</button>',
         '</div>',
       '</div>'
@@ -380,8 +777,8 @@
   // ── Sheet open / close ────────────────────────────────────
   function openAddSheet() {
     editingId = null;
-    $modalTitle.text('Add Trip');
-    $btnSaveLabel.text('Save Trip');
+    $modalTitle.text(t('addTripTitle'));
+    $btnSaveLabel.text(t('saveTrip'));
     $('#trip-form').trigger('reset');
     clearErrors();
     setStatusField('Planning');
@@ -391,8 +788,8 @@
 
   function openEditSheet(trip) {
     editingId = trip.id;
-    $modalTitle.text('Edit Trip');
-    $btnSaveLabel.text('Update Trip');
+    $modalTitle.text(t('editTripTitle'));
+    $btnSaveLabel.text(t('updateTrip'));
     clearErrors();
 
     $('#field-id').val(trip.id);
@@ -666,8 +1063,8 @@
   // ── Schedule form ──────────────────────────────────────────
   function openSchedForm(sched) {
     editingSchedId = sched ? sched.id : null;
-    $('#sched-form-title').text(sched ? 'Edit Schedule' : 'Add Schedule');
-    $('#sf-save-label').text(sched ? 'Update' : 'Save');
+    $('#sched-form-title').text(sched ? t('editSchedTitle') : t('addSchedTitle'));
+    $('#sf-save-label').text(sched ? t('update') : t('save'));
     $('#sched-form').trigger('reset');
     $('#sched-form .error').removeClass('error');
 
@@ -705,7 +1102,7 @@
       var $el = $('#' + id);
       if (!$el.val().trim()) { $el.addClass('error'); ok = false; }
     });
-    if (!ok) { showToast('Please fill required fields', 'error'); return; }
+    if (!ok) { showToast(t('fillRequired'), 'error'); return; }
 
     var sched = {
       id:        $('#sf-id').val(),
@@ -882,10 +1279,362 @@
     };
   }
 
+  // ── Auth ──────────────────────────────────────────────────
+  function bindAuthEvents() {
+    $('#go-register').on('click', function (e) {
+      e.preventDefault();
+      $('#lp-login').addClass('hidden'); $('#lp-register').removeClass('hidden');
+      $('#login-error, #register-error').addClass('hidden');
+    });
+    $('#go-login').on('click', function (e) {
+      e.preventDefault();
+      $('#lp-register').addClass('hidden'); $('#lp-login').removeClass('hidden');
+      $('#login-error, #register-error').addClass('hidden');
+    });
+
+    $('#login-form').on('submit', function (e) {
+      e.preventDefault();
+      var name = $('#login-name').val().trim();
+      var pass = $('#login-pass').val();
+      if (!name || !pass) { showLoginError('Please enter username and password.'); return; }
+      setLoginLoading(true);
+      google.script.run
+        .withSuccessHandler(function (res) {
+          setLoginLoading(false);
+          if (res.success) { onLoginSuccess(res.user); } else { showLoginError(res.error); }
+        })
+        .withFailureHandler(function () {
+          setLoginLoading(false);
+          showLoginError('Connection error. Please try again.');
+        })
+        .loginUser(name, pass);
+    });
+
+    $('#register-form').on('submit', function (e) {
+      e.preventDefault();
+      var name    = $('#reg-name').val().trim();
+      var pass    = $('#reg-pass').val();
+      var confirm = $('#reg-confirm').val();
+      if (!name || !pass) { showRegisterError('Please fill in all fields.'); return; }
+      if (pass !== confirm) { showRegisterError('Passwords do not match.'); return; }
+      setRegisterLoading(true);
+      google.script.run
+        .withSuccessHandler(function (res) {
+          setRegisterLoading(false);
+          if (res.success) {
+            showToast('Account created! Please sign in.', 'success');
+            $('#lp-register').addClass('hidden'); $('#lp-login').removeClass('hidden');
+            $('#reg-name, #reg-pass, #reg-confirm').val('');
+          } else { showRegisterError(res.error); }
+        })
+        .withFailureHandler(function () {
+          setRegisterLoading(false);
+          showRegisterError('Connection error. Please try again.');
+        })
+        .registerUser(name, pass);
+    });
+
+    $('#btn-logout').on('click', logout);
+    $('#btn-users').on('click', openUsersPanel);
+    $('#users-close, #users-backdrop').on('click', closeUsersPanel);
+    $('#header-avatar').on('click', openProfileSheet);
+    $('#profile-close, #profile-cancel, #profile-backdrop').on('click', closeProfileSheet);
+    $('#profile-save').on('click', saveProfile);
+
+    // Google auth
+    $('#btn-google-login, #btn-google-register').on('click', function () {
+      var $btn = $(this);
+      $btn.prop('disabled', true).css('opacity', .6);
+      google.script.run
+        .withSuccessHandler(function (res) {
+          $btn.prop('disabled', false).css('opacity', '');
+          var email = res.email;
+          if (!email) {
+            // No Google session available (local preview or not authorized)
+            showToast('Google sign-in not available here. Use username/password.', 'error');
+            return;
+          }
+          google.script.run
+            .withSuccessHandler(function (loginRes) {
+              if (loginRes.success) {
+                onLoginSuccess(loginRes.user);
+              } else {
+                // New Google user — show name form
+                $('#google-new-email').val(email);
+                $('#google-new-name').val('');
+                $('#google-new-error').addClass('hidden');
+                $('#lp-login, #lp-register').addClass('hidden');
+                $('#lp-google-new').removeClass('hidden');
+              }
+            })
+            .withFailureHandler(function () { showLoginError('Connection error.'); })
+            .loginWithGoogle(email);
+        })
+        .withFailureHandler(function () {
+          $btn.prop('disabled', false).css('opacity', '');
+          showToast('Could not reach server.', 'error');
+        })
+        .getGoogleUser();
+    });
+
+    $('#google-new-form').on('submit', function (e) {
+      e.preventDefault();
+      var email = $('#google-new-email').val();
+      var name  = $('#google-new-name').val().trim();
+      if (!name) { $('#google-new-error').text('Please enter a display name.').removeClass('hidden'); return; }
+      $('#btn-google-new').prop('disabled', true);
+      $('#btn-google-new-label').addClass('hidden');
+      $('#google-new-spinner').removeClass('hidden');
+      google.script.run
+        .withSuccessHandler(function (res) {
+          $('#btn-google-new').prop('disabled', false);
+          $('#btn-google-new-label').removeClass('hidden');
+          $('#google-new-spinner').addClass('hidden');
+          if (res.success) {
+            onLoginSuccess(res.user);
+          } else {
+            $('#google-new-error').text(res.error).removeClass('hidden');
+          }
+        })
+        .withFailureHandler(function () {
+          $('#btn-google-new').prop('disabled', false);
+          $('#btn-google-new-label').removeClass('hidden');
+          $('#google-new-spinner').addClass('hidden');
+          $('#google-new-error').text('Connection error.').removeClass('hidden');
+        })
+        .registerWithGoogle(email, name);
+    });
+
+    $('#go-login-from-google').on('click', function (e) {
+      e.preventDefault();
+      $('#lp-google-new').addClass('hidden');
+      $('#lp-login').removeClass('hidden');
+    });
+  }
+
+  function setLoginLoading(on) {
+    $('#btn-login').prop('disabled', on);
+    $('#btn-login-label').toggleClass('hidden', on);
+    $('#login-spinner').toggleClass('hidden', !on);
+  }
+  function setRegisterLoading(on) {
+    $('#btn-register').prop('disabled', on);
+    $('#btn-register-label').toggleClass('hidden', on);
+    $('#register-spinner').toggleClass('hidden', !on);
+  }
+  function showLoginError(msg)    { $('#login-error').text(msg).removeClass('hidden'); }
+  function showRegisterError(msg) { $('#register-error').text(msg).removeClass('hidden'); }
+
+  function onLoginSuccess(user) {
+    currentUser = user;
+    localStorage.setItem('tm_user', JSON.stringify(user));
+    $('#login-screen').addClass('fade-out');
+    setTimeout(function () { $('#login-screen').addClass('hidden'); }, 350);
+    applyRolePermissions();
+    updateHeaderUser();
+    applyTranslations();
+    if (!allTrips.length) init();
+  }
+
+  function logout() {
+    currentUser = null;
+    localStorage.removeItem('tm_user');
+    $('body').removeClass('role-admin role-staff role-viewer');
+    $('#header-user, #btn-add-trip-header, #btn-users').addClass('hidden');
+    allTrips = []; renderTrips();
+    $('#login-screen').removeClass('hidden fade-out');
+    $('#login-name, #login-pass').val('');
+    $('#login-error').addClass('hidden');
+  }
+
+  function applyRolePermissions() {
+    if (!currentUser) return;
+    $('body').removeClass('role-admin role-staff role-viewer').addClass('role-' + currentUser.role);
+  }
+
+  function updateHeaderUser() {
+    if (!currentUser) return;
+    $('#header-avatar').text(currentUser.name.charAt(0).toUpperCase());
+    $('#header-user-name').text(currentUser.name);
+    $('#header-user-role').text(currentUser.role);
+    $('#header-user').removeClass('hidden');
+    if (currentUser.role !== 'viewer') $('#btn-add-trip-header').removeClass('hidden');
+    if (currentUser.role === 'admin')  $('#btn-users').removeClass('hidden');
+  }
+
+  // ── Users panel (admin only) ──────────────────────────────
+  function openUsersPanel() {
+    $('#users-list').empty();
+    $('#users-loading').removeClass('hidden');
+    openSheet('#users-sheet', '#users-backdrop');
+    google.script.run
+      .withSuccessHandler(function (list) {
+        $('#users-loading').addClass('hidden');
+        renderUsers(list);
+      })
+      .withFailureHandler(function () {
+        $('#users-loading').addClass('hidden');
+        showToast('Failed to load users', 'error');
+      })
+      .getUsers();
+  }
+
+  function closeUsersPanel() {
+    $('#users-sheet').removeClass('open');
+    setTimeout(function () {
+      $('#users-sheet, #users-backdrop').addClass('hidden');
+      $('body').css('overflow', '');
+    }, 330);
+  }
+
+  function renderUsers(list) {
+    var $ul = $('#users-list').empty();
+    if (!list.length) {
+      $ul.html('<p style="color:var(--c-text-muted);text-align:center;padding:32px">No users found.</p>');
+      return;
+    }
+    $.each(list, function (_, u) {
+      var isMe = currentUser && u.id === currentUser.id;
+      var $row = $([
+        '<div class="user-row' + (u.isActive ? '' : ' inactive') + '" data-id="' + esc(u.id) + '">',
+          '<div class="user-avatar ua-' + esc(u.role) + '">' + esc(u.name.charAt(0).toUpperCase()) + '</div>',
+          '<div class="user-info">',
+            '<div class="user-name">' + esc(u.name) + (isMe ? ' <span style="font-size:11px;color:var(--c-text-muted)">(you)</span>' : '') + '</div>',
+            '<div class="user-meta">Joined ' + esc(u.createdAt) + ' · Last: ' + esc(u.lastLoginAt) + '</div>',
+          '</div>',
+          '<select class="user-role-select"' + (isMe ? ' disabled' : '') + '>',
+            '<option value="admin"'  + (u.role === 'admin'  ? ' selected' : '') + '>Admin</option>',
+            '<option value="staff"'  + (u.role === 'staff'  ? ' selected' : '') + '>Staff</option>',
+            '<option value="viewer"' + (u.role === 'viewer' ? ' selected' : '') + '>Viewer</option>',
+          '</select>',
+          '<button class="toggle-active' + (u.isActive ? ' on' : '') + '"' + (isMe ? ' disabled style="opacity:.4"' : '') + '"></button>',
+        '</div>',
+      ].join(''));
+
+      $row.find('.user-role-select').on('change', function () {
+        var newRole = $(this).val();
+        $row.find('.user-avatar').removeClass('ua-admin ua-staff ua-viewer').addClass('ua-' + newRole);
+        google.script.run
+          .withFailureHandler(function () { showToast('Failed to update role', 'error'); })
+          .updateUser(u.id, { role: newRole });
+      });
+
+      $row.find('.toggle-active').on('click', function () {
+        if (isMe) return;
+        var $btn   = $(this);
+        var newVal = !$btn.hasClass('on');
+        $btn.toggleClass('on', newVal);
+        $row.toggleClass('inactive', !newVal);
+        google.script.run
+          .withFailureHandler(function () {
+            $btn.toggleClass('on', !newVal);
+            $row.toggleClass('inactive', newVal);
+            showToast('Failed to update user', 'error');
+          })
+          .updateUser(u.id, { isActive: newVal });
+      });
+
+      $ul.append($row);
+    });
+  }
+
+  // ── Profile sheet ────────────────────────────────────────
+  var selectedLang = 'en';
+
+  function openProfileSheet() {
+    if (!currentUser) return;
+    selectedLang = getCurrentLang();
+
+    $('#profile-avatar-lg').text(currentUser.name.charAt(0).toUpperCase());
+    $('#profile-display-name').text(currentUser.name);
+    $('#profile-display-role').text(currentUser.role);
+    $('#pf-name').val(currentUser.name);
+    $('#pf-current-pass, #pf-new-pass').val('');
+
+    // Hide password section for Google accounts
+    var isGoogle = currentUser.authMethod === 'google';
+    $('#pf-password-section').toggleClass('hidden', isGoogle);
+
+    // Highlight selected lang
+    $('.lang-btn').removeClass('selected');
+    $('.lang-btn[data-lang="' + selectedLang + '"]').addClass('selected');
+
+    $('.lang-btn').off('click.lang').on('click.lang', function () {
+      selectedLang = $(this).data('lang');
+      $('.lang-btn').removeClass('selected');
+      $(this).addClass('selected');
+    });
+
+    openSheet('#profile-sheet', '#profile-backdrop');
+    setTimeout(function () { $('#pf-name').focus(); }, 350);
+  }
+
+  function closeProfileSheet() {
+    $('#profile-sheet').removeClass('open');
+    setTimeout(function () {
+      $('#profile-sheet, #profile-backdrop').addClass('hidden');
+      $('body').css('overflow', '');
+    }, 330);
+  }
+
+  function saveProfile() {
+    if (!currentUser) return;
+    var newName    = $('#pf-name').val().trim();
+    var currentPw  = $('#pf-current-pass').val();
+    var newPw      = $('#pf-new-pass').val();
+
+    var updates = {};
+    if (newName && newName !== currentUser.name) updates.name = newName;
+    if (newPw) {
+      updates.currentPassword = currentPw;
+      updates.newPassword     = newPw;
+    }
+    if (selectedLang !== getCurrentLang()) updates.lang = selectedLang;
+
+    if (!Object.keys(updates).length) { closeProfileSheet(); return; }
+
+    $('#profile-save').prop('disabled', true);
+    $('#profile-save-label').addClass('hidden');
+    $('#profile-spinner').removeClass('hidden');
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        $('#profile-save').prop('disabled', false);
+        $('#profile-save-label').removeClass('hidden');
+        $('#profile-spinner').addClass('hidden');
+        if (!res.success) { showToast(res.error || 'Update failed', 'error'); return; }
+        if (updates.name)    currentUser.name = updates.name;
+        if (updates.lang)    currentUser.lang = updates.lang;
+        localStorage.setItem('tm_user', JSON.stringify(currentUser));
+        updateHeaderUser();
+        applyTranslations();
+        closeProfileSheet();
+        showToast('Profile updated', 'success');
+      })
+      .withFailureHandler(function (err) {
+        $('#profile-save').prop('disabled', false);
+        $('#profile-save-label').removeClass('hidden');
+        $('#profile-spinner').addClass('hidden');
+        showToast('Error: ' + err.message, 'error');
+      })
+      .updateProfile(currentUser.id, updates);
+  }
+
   // ── Boot ──────────────────────────────────────────────────
   $(function () {
     if (localStorage.getItem('dev_mock') === '1') setupMock();
-    init();
+    bindAuthEvents();
+    var saved = localStorage.getItem('tm_user');
+    if (saved) {
+      try {
+        currentUser = JSON.parse(saved);
+        $('#login-screen').addClass('hidden');
+        applyRolePermissions();
+        updateHeaderUser();
+        applyTranslations();
+        init();
+      } catch (e) { localStorage.removeItem('tm_user'); }
+    }
     $('.stat-pill[data-filter=""]').attr('data-selected', '');
   });
 

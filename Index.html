@@ -9,6 +9,8 @@
 </head>
 <body>
 
+  <?!= include('Login') ?>
+
   <!-- ── Header ─────────────────────────────────────────── -->
   <header class="app-header">
     <div class="app-header-inner">
@@ -20,12 +22,37 @@
         </svg>
         <span>Trip Manager</span>
       </div>
-      <button class="btn-header-add" id="btn-add-trip-header">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        New Trip
-      </button>
+      <div class="header-right">
+        <button class="btn-header-users hidden" id="btn-users" aria-label="Manage Users">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <span data-i18n="users">Users</span>
+        </button>
+        <button class="btn-header-add hidden" id="btn-add-trip-header">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          <span data-i18n="addTrip">New Trip</span>
+        </button>
+        <div class="header-user hidden" id="header-user">
+          <div class="header-avatar" id="header-avatar"></div>
+          <div class="header-user-info hidden-xs">
+            <span class="header-user-name" id="header-user-name"></span>
+            <span class="header-user-role" id="header-user-role"></span>
+          </div>
+          <button class="btn-logout" id="btn-logout" aria-label="Sign out">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -36,23 +63,23 @@
     <div class="stats-strip">
       <button class="stat-pill active" data-filter="">
         <span class="stat-num" id="stat-total">—</span>
-        <span class="stat-lbl">All</span>
+        <span class="stat-lbl" data-i18n="allTrips">All</span>
       </button>
       <button class="stat-pill planning" data-filter="Planning">
         <span class="stat-num" id="stat-planning">—</span>
-        <span class="stat-lbl">Planning</span>
+        <span class="stat-lbl" data-i18n="planning">Planning</span>
       </button>
       <button class="stat-pill active-trip" data-filter="Active">
         <span class="stat-num" id="stat-active">—</span>
-        <span class="stat-lbl">Active</span>
+        <span class="stat-lbl" data-i18n="active">Active</span>
       </button>
       <button class="stat-pill completed" data-filter="Completed">
         <span class="stat-num" id="stat-completed">—</span>
-        <span class="stat-lbl">Done</span>
+        <span class="stat-lbl" data-i18n="done">Done</span>
       </button>
       <button class="stat-pill cancelled" data-filter="Cancelled">
         <span class="stat-num" id="stat-cancelled">—</span>
-        <span class="stat-lbl">Cancelled</span>
+        <span class="stat-lbl" data-i18n="cancelled">Cancelled</span>
       </button>
     </div>
 
@@ -62,7 +89,7 @@
         <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input type="text" id="search-input" class="search-input" placeholder="Search trips…" autocomplete="off">
+        <input type="text" id="search-input" class="search-input" data-i18n-ph="searchPlaceholder" placeholder="Search trips…" autocomplete="off">
         <button class="search-clear hidden" id="search-clear" aria-label="Clear">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -84,7 +111,7 @@
     <div class="trip-list" id="trip-list">
       <div class="loading-state" id="loading-state">
         <div class="spinner"></div>
-        <p>Loading your trips…</p>
+        <p data-i18n="loading">Loading your trips…</p>
       </div>
     </div>
 
@@ -97,20 +124,20 @@
           <path d="M2 12h20"/>
         </svg>
       </div>
-      <h3>No trips found</h3>
-      <p>Add your first trip or clear the filters.</p>
+      <h3 data-i18n="noTrips">No trips found</h3>
+      <p data-i18n="noTripsDesc">Add your first trip or clear the filters.</p>
       <button class="btn btn-primary" id="btn-empty-add">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
-        Add Trip
+        <span data-i18n="addTripBtn">Add Trip</span>
       </button>
     </div>
 
   </main>
 
   <!-- ── FAB (mobile only) ──────────────────────────────── -->
-  <button class="fab" id="btn-add-trip-fab" aria-label="Add Trip">
+  <button class="fab hidden" id="btn-add-trip-fab" aria-label="Add Trip">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
@@ -134,25 +161,25 @@
       <form id="trip-form" novalidate>
         <input type="hidden" id="field-id">
         <div class="form-group">
-          <label class="form-label" for="field-name">Trip Name <span class="req">*</span></label>
-          <input type="text" id="field-name" class="form-input" placeholder="e.g. Summer in Japan" autocomplete="off">
+          <label class="form-label" for="field-name"><span data-i18n="labelTripName">Trip Name</span> <span class="req">*</span></label>
+          <input type="text" id="field-name" class="form-input" data-i18n-ph="phTripName" placeholder="e.g. Summer in Japan" autocomplete="off">
         </div>
         <div class="form-group">
-          <label class="form-label" for="field-destination">Destination <span class="req">*</span></label>
-          <input type="text" id="field-destination" class="form-input" placeholder="e.g. Tokyo, Japan" autocomplete="off">
+          <label class="form-label" for="field-destination"><span data-i18n="labelDestination">Destination</span> <span class="req">*</span></label>
+          <input type="text" id="field-destination" class="form-input" data-i18n-ph="phDestination" placeholder="e.g. Tokyo, Japan" autocomplete="off">
         </div>
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label" for="field-start">Start Date <span class="req">*</span></label>
+            <label class="form-label" for="field-start"><span data-i18n="labelStartDate">Start Date</span> <span class="req">*</span></label>
             <input type="date" id="field-start" class="form-input">
           </div>
           <div class="form-group">
-            <label class="form-label" for="field-end">End Date <span class="req">*</span></label>
+            <label class="form-label" for="field-end"><span data-i18n="labelEndDate">End Date</span> <span class="req">*</span></label>
             <input type="date" id="field-end" class="form-input">
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="field-status">Status</label>
+          <label class="form-label" for="field-status" data-i18n="labelStatus">Status</label>
           <select id="field-status" class="form-select2">
             <option value="Planning">Planning</option>
             <option value="Active">Active</option>
@@ -161,13 +188,13 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="field-notes">Notes</label>
-          <textarea id="field-notes" class="form-input form-textarea" placeholder="Any notes about this trip…" rows="3"></textarea>
+          <label class="form-label" for="field-notes" data-i18n="labelNotes">Notes</label>
+          <textarea id="field-notes" class="form-input form-textarea" data-i18n-ph="phNotes" placeholder="Any notes about this trip…" rows="3"></textarea>
         </div>
       </form>
     </div>
     <div class="sheet-footer">
-      <button type="button" class="btn btn-ghost" id="btn-cancel">Cancel</button>
+      <button type="button" class="btn btn-ghost" id="btn-cancel" data-i18n="cancel">Cancel</button>
       <button type="button" class="btn btn-primary" id="btn-save">
         <span id="btn-save-label">Save Trip</span>
         <span class="btn-spinner hidden" id="btn-spinner"></span>
@@ -180,16 +207,16 @@
   <div class="sheet sheet-sm hidden" id="confirm-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <h2 class="sheet-title">Delete Trip?</h2>
+      <h2 class="sheet-title" data-i18n="deleteTripQ">Delete Trip?</h2>
     </div>
     <div class="sheet-body">
       <p class="confirm-msg">
-        <strong id="confirm-name"></strong> will be permanently deleted. This cannot be undone.
+        <strong id="confirm-name"></strong> <span data-i18n="deleteTripBody">will be permanently deleted. This cannot be undone.</span>
       </p>
     </div>
     <div class="sheet-footer">
-      <button type="button" class="btn btn-ghost" id="confirm-cancel">Cancel</button>
-      <button type="button" class="btn btn-danger" id="confirm-delete">Delete</button>
+      <button type="button" class="btn btn-ghost" id="confirm-cancel" data-i18n="cancel">Cancel</button>
+      <button type="button" class="btn btn-danger" id="confirm-delete" data-i18n="delete">Delete</button>
     </div>
   </div>
 
@@ -224,7 +251,7 @@
     <div class="sheet-body sched-body">
       <div class="loading-state hidden" id="schedule-loading">
         <div class="spinner"></div>
-        <p>Loading schedules…</p>
+        <p data-i18n="loadingScheds">Loading schedules…</p>
       </div>
       <div class="schedule-timeline" id="schedule-list"></div>
       <div class="sched-empty hidden" id="schedule-empty">
@@ -232,13 +259,13 @@
           <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
           <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
         </svg>
-        <p>No schedules yet</p>
-        <button class="btn btn-primary" id="btn-empty-schedule">Add First Schedule</button>
+        <p data-i18n="noSchedules">No schedules yet</p>
+        <button class="btn btn-primary" id="btn-empty-schedule" data-i18n="addSchedule">Add First Schedule</button>
       </div>
     </div>
   </div>
 
-  <!-- ── Schedule form sheet (on top of list) ───────────── -->
+  <!-- ── Schedule form sheet ────────────────────────────── -->
   <div class="sheet-backdrop sched-form-bd hidden" id="sched-form-backdrop"></div>
   <div class="sheet sched-form-sheet hidden" id="sched-form-sheet">
     <div class="sheet-handle"></div>
@@ -255,24 +282,24 @@
         <input type="hidden" id="sf-id">
         <input type="hidden" id="sf-trip-id">
         <div class="form-group">
-          <label class="form-label" for="sf-datetime">Date &amp; Time <span class="req">*</span></label>
+          <label class="form-label" for="sf-datetime"><span data-i18n="labelDateTime">Date &amp; Time</span> <span class="req">*</span></label>
           <input type="datetime-local" id="sf-datetime" class="form-input">
         </div>
         <div class="form-group">
-          <label class="form-label" for="sf-detail">Detail <span class="req">*</span></label>
-          <input type="text" id="sf-detail" class="form-input" placeholder="e.g. Visit Senso-ji Temple" autocomplete="off">
+          <label class="form-label" for="sf-detail"><span data-i18n="labelDetail">Detail</span> <span class="req">*</span></label>
+          <input type="text" id="sf-detail" class="form-input" data-i18n-ph="phDetail" placeholder="e.g. Visit Senso-ji Temple" autocomplete="off">
         </div>
         <div class="form-group">
-          <label class="form-label" for="sf-transport">Transport</label>
-          <input type="text" id="sf-transport" class="form-input" placeholder="e.g. BTS → Taxi" autocomplete="off">
+          <label class="form-label" for="sf-transport" data-i18n="labelTransport">Transport</label>
+          <input type="text" id="sf-transport" class="form-input" data-i18n-ph="phTransport" placeholder="e.g. BTS → Taxi" autocomplete="off">
         </div>
         <div class="form-row-2">
           <div class="form-group">
-            <label class="form-label" for="sf-cost">Cost (฿)</label>
+            <label class="form-label" for="sf-cost" data-i18n="labelCost">Cost (฿)</label>
             <input type="number" id="sf-cost" class="form-input" placeholder="0" min="0">
           </div>
           <div class="form-group">
-            <label class="form-label" for="sf-status">Status</label>
+            <label class="form-label" for="sf-status" data-i18n="labelStatus">Status</label>
             <select id="sf-status" class="sched-status-s2">
               <option value="Planning">Planning</option>
               <option value="Confirmed">Confirmed</option>
@@ -282,17 +309,17 @@
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label" for="sf-map">Map Link</label>
+          <label class="form-label" for="sf-map" data-i18n="labelMapLink">Map Link</label>
           <input type="url" id="sf-map" class="form-input" placeholder="https://maps.google.com/…">
         </div>
         <div class="form-group">
-          <label class="form-label" for="sf-note">Note</label>
-          <textarea id="sf-note" class="form-input form-textarea" rows="2" placeholder="Additional notes…"></textarea>
+          <label class="form-label" for="sf-note" data-i18n="labelNote">Note</label>
+          <textarea id="sf-note" class="form-input form-textarea" rows="2" data-i18n-ph="phNote" placeholder="Additional notes…"></textarea>
         </div>
       </form>
     </div>
     <div class="sheet-footer">
-      <button type="button" class="btn btn-ghost" id="sf-cancel">Cancel</button>
+      <button type="button" class="btn btn-ghost" id="sf-cancel" data-i18n="cancel">Cancel</button>
       <button type="button" class="btn btn-primary" id="sf-save">
         <span id="sf-save-label">Save</span>
         <span class="btn-spinner hidden" id="sf-spinner"></span>
@@ -305,14 +332,107 @@
   <div class="sheet sheet-sm sched-form-sheet hidden" id="sched-del-sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-header">
-      <h2 class="sheet-title">Delete Schedule?</h2>
+      <h2 class="sheet-title" data-i18n="deleteSchedQ">Delete Schedule?</h2>
     </div>
     <div class="sheet-body">
-      <p class="confirm-msg"><strong id="sched-del-name"></strong> will be permanently deleted.</p>
+      <p class="confirm-msg"><strong id="sched-del-name"></strong> <span data-i18n="deleteBody">will be permanently deleted.</span></p>
     </div>
     <div class="sheet-footer">
-      <button type="button" class="btn btn-ghost" id="sched-del-cancel">Cancel</button>
-      <button type="button" class="btn btn-danger" id="sched-del-confirm">Delete</button>
+      <button type="button" class="btn btn-ghost" id="sched-del-cancel" data-i18n="cancel">Cancel</button>
+      <button type="button" class="btn btn-danger" id="sched-del-confirm" data-i18n="delete">Delete</button>
+    </div>
+  </div>
+
+  <!-- ── Profile sheet ────────────────────────────────────── -->
+  <div class="sheet-backdrop hidden" id="profile-backdrop"></div>
+  <div class="sheet hidden" id="profile-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title" data-i18n="profileTitle">My Profile</h2>
+      <button class="sheet-close" id="profile-close" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <!-- Avatar -->
+      <div class="profile-avatar-row">
+        <div class="profile-avatar-lg" id="profile-avatar-lg"></div>
+        <div class="profile-user-name" id="profile-display-name"></div>
+        <div class="profile-user-role" id="profile-display-role"></div>
+      </div>
+
+      <!-- Display name -->
+      <div>
+        <p class="profile-section-title" data-i18n="labelDisplayName">Display Name</p>
+        <div class="form-group">
+          <input type="text" id="pf-name" class="form-input" data-i18n-ph="phDisplayName" placeholder="Your display name" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Password (local accounts only) -->
+      <div id="pf-password-section">
+        <p class="profile-section-title" data-i18n="labelChangePassword">Change Password</p>
+        <div class="form-group">
+          <label class="form-label" for="pf-current-pass" data-i18n="labelCurrentPw">Current Password</label>
+          <input type="password" id="pf-current-pass" class="form-input" data-i18n-ph="phCurrentPw" placeholder="Enter current password" autocomplete="current-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="pf-new-pass" data-i18n="labelNewPw">New Password</label>
+          <input type="password" id="pf-new-pass" class="form-input" placeholder="Min. 6 characters" autocomplete="new-password">
+        </div>
+      </div>
+
+      <!-- Language -->
+      <div>
+        <p class="profile-section-title" data-i18n="labelLanguage">Language / ภาษา</p>
+        <div class="lang-grid">
+          <button type="button" class="lang-btn" data-lang="en">
+            <span>🇬🇧</span><span>English</span>
+          </button>
+          <button type="button" class="lang-btn" data-lang="th">
+            <span>🇹🇭</span><span>ไทย</span>
+          </button>
+          <button type="button" class="lang-btn" data-lang="lo">
+            <span>🇱🇦</span><span>ລາວ</span>
+          </button>
+          <button type="button" class="lang-btn" data-lang="ja">
+            <span>🇯🇵</span><span>日本語</span>
+          </button>
+          <button type="button" class="lang-btn" data-lang="zh">
+            <span>🇨🇳</span><span>中文</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-ghost" id="profile-cancel" data-i18n="cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="profile-save">
+        <span id="profile-save-label" data-i18n="saveChanges">Save Changes</span>
+        <span class="btn-spinner hidden" id="profile-spinner"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Users management sheet (admin only) ───────────── -->
+  <div class="sheet-backdrop hidden" id="users-backdrop"></div>
+  <div class="sheet sheet-full hidden" id="users-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <h2 class="sheet-title">Users</h2>
+      <button class="sheet-close" id="users-close" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="sheet-body">
+      <div class="loading-state hidden" id="users-loading">
+        <div class="spinner"></div>
+        <p>Loading users…</p>
+      </div>
+      <div class="users-list" id="users-list"></div>
     </div>
   </div>
 
