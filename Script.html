@@ -1,4 +1,70 @@
 <script>
+/* ── Dev mock: active when localStorage.dev_mock is set ─────────────── */
+(function () {
+  if (localStorage.getItem('dev_mock') !== '1') return;
+
+  var KEY = 'trip-mgr-trips';
+  var SAMPLE = [
+    { id:'TRIP-1', name:'Tokyo Adventure',  destination:'Tokyo, Japan',         startDate:'2025-07-01', endDate:'2025-07-14', status:'Planning',  notes:'Cherry blossom season' },
+    { id:'TRIP-2', name:'Bali Retreat',     destination:'Bali, Indonesia',      startDate:'2025-03-10', endDate:'2025-03-17', status:'Completed', notes:'Beach and temples' },
+    { id:'TRIP-3', name:'Paris Weekend',    destination:'Paris, France',        startDate:'2025-09-05', endDate:'2025-09-08', status:'Active',    notes:'Visit the Louvre' },
+    { id:'TRIP-4', name:'New York Trip',    destination:'New York, USA',        startDate:'2025-11-20', endDate:'2025-11-25', status:'Planning',  notes:'' },
+    { id:'TRIP-5', name:'Chiang Mai Slow',  destination:'Chiang Mai, Thailand', startDate:'2024-12-01', endDate:'2024-12-15', status:'Cancelled', notes:'Postponed' },
+  ];
+
+  function load() {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) { localStorage.setItem(KEY, JSON.stringify(SAMPLE)); return SAMPLE.slice(); }
+    return JSON.parse(raw);
+  }
+  function save(trips) { localStorage.setItem(KEY, JSON.stringify(trips)); }
+
+  function makeRunner() {
+    var _ok, _err;
+    var r = {
+      withSuccessHandler: function (fn) { _ok  = fn; return r; },
+      withFailureHandler: function (fn) { _err = fn; return r; },
+      getTrips: function () {
+        setTimeout(function () { _ok && _ok(load()); }, 300);
+      },
+      addTrip: function (trip) {
+        setTimeout(function () {
+          trip.id = 'TRIP-' + Date.now();
+          var trips = load(); trips.push(trip); save(trips);
+          _ok && _ok({ success: true, id: trip.id });
+        }, 250);
+      },
+      updateTrip: function (trip) {
+        setTimeout(function () {
+          var trips = load();
+          $.each(trips, function (i, t) {
+            if (t.id === trip.id) { trips[i] = trip; return false; }
+          });
+          save(trips);
+          _ok && _ok({ success: true });
+        }, 250);
+      },
+      deleteTrip: function (id) {
+        setTimeout(function () {
+          save($.grep(load(), function (t) { return t.id !== id; }));
+          _ok && _ok({ success: true });
+        }, 250);
+      }
+    };
+    return r;
+  }
+
+  window.google = {
+    script: {
+      run: {
+        withSuccessHandler: function (fn) { return makeRunner().withSuccessHandler(fn); },
+        withFailureHandler: function (fn) { return makeRunner().withFailureHandler(fn); }
+      }
+    }
+  };
+}());
+/* ─────────────────────────────────────────────────────────────────────── */
+
 (function ($) {
   'use strict';
 
@@ -69,7 +135,7 @@
 
     // Search
     $searchInput.on('input', function () {
-      $searchClear.toggleClass('hidden', !this.value);
+      $searchClear.toggleClass('hidden', !$(this).val());
       renderTrips();
     });
     $searchClear.on('click', function () {
@@ -126,7 +192,7 @@
   // ── Render ────────────────────────────────────────────────
   function getFiltered() {
     var q = $searchInput.val().toLowerCase().trim();
-    return allTrips.filter(function (t) {
+    return $.grep(allTrips, function (t) {
       var matchQ = !q ||
         t.name.toLowerCase().indexOf(q) !== -1 ||
         t.destination.toLowerCase().indexOf(q) !== -1 ||
@@ -216,7 +282,7 @@
   }
 
   function countByStatus(s) {
-    return allTrips.filter(function (t) { return t.status === s; }).length;
+    return $.grep(allTrips, function (t) { return t.status === s; }).length;
   }
 
   // ── Sheet open / close ────────────────────────────────────
@@ -224,7 +290,7 @@
     editingId = null;
     $modalTitle.text('Add Trip');
     $btnSaveLabel.text('Save Trip');
-    $('#trip-form')[0].reset();
+    $('#trip-form').trigger('reset');
     clearErrors();
     setStatusField('Planning');
     openSheet('#trip-sheet', '#sheet-backdrop');
@@ -251,11 +317,9 @@
   function openSheet(sheetSel, backdropSel) {
     $(backdropSel).removeClass('hidden');
     $(sheetSel).removeClass('hidden');
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        $(sheetSel).addClass('open');
-      });
-    });
+    setTimeout(function () {
+      $(sheetSel).addClass('open');
+    }, 0);
     $('body').css('overflow', 'hidden');
   }
 
@@ -374,7 +438,7 @@
     google.script.run
       .withSuccessHandler(function (res) {
         if (!res.success) { showToast(res.error || 'Delete failed', 'error'); return; }
-        allTrips = allTrips.filter(function (t) { return t.id !== id; });
+        allTrips = $.grep(allTrips, function (t) { return t.id !== id; });
         renderTrips();
         updateStats();
         showToast('Trip deleted', 'success');
@@ -398,10 +462,11 @@
   }
 
   function indexById(id) {
-    for (var i = 0; i < allTrips.length; i++) {
-      if (allTrips[i].id === id) return i;
-    }
-    return -1;
+    var result = -1;
+    $.each(allTrips, function (i, t) {
+      if (t.id === id) { result = i; return false; }
+    });
+    return result;
   }
 
   function formatDateRange(start, end) {
