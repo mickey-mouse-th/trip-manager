@@ -6,50 +6,96 @@
   // Runs inside $(function(){}) so it always overrides window.google
   // after Apps Script has injected it. Safe for both local and production.
   function setupMock() {
-    var KEY = 'trip-mgr-trips';
-    var SAMPLE = [
+    var TRIP_KEY  = 'trip-mgr-trips';
+    var SCHED_KEY = 'trip-mgr-scheds';
+
+    var SAMPLE_TRIPS = [
       { id:'TRIP-1', name:'Tokyo Adventure',  destination:'Tokyo, Japan',         startDate:'2025-07-01', endDate:'2025-07-14', status:'Planning',  notes:'Cherry blossom season' },
       { id:'TRIP-2', name:'Bali Retreat',     destination:'Bali, Indonesia',      startDate:'2025-03-10', endDate:'2025-03-17', status:'Completed', notes:'Beach and temples' },
       { id:'TRIP-3', name:'Paris Weekend',    destination:'Paris, France',        startDate:'2025-09-05', endDate:'2025-09-08', status:'Active',    notes:'Visit the Louvre' },
       { id:'TRIP-4', name:'New York Trip',    destination:'New York, USA',        startDate:'2025-11-20', endDate:'2025-11-25', status:'Planning',  notes:'' },
       { id:'TRIP-5', name:'Chiang Mai Slow',  destination:'Chiang Mai, Thailand', startDate:'2024-12-01', endDate:'2024-12-15', status:'Cancelled', notes:'Postponed' },
     ];
+    var SAMPLE_SCHEDS = [
+      { id:'S-1', tripId:'TRIP-1', dateTime:'2025-07-01T09:00', detail:'Fly BKK → NRT (TG680)', transport:'Suvarnabhumi Airport', cost:'15000', map:'https://maps.google.com', note:'Window seat booked', status:'Confirmed' },
+      { id:'S-2', tripId:'TRIP-1', dateTime:'2025-07-01T17:00', detail:'Check in — Shinjuku Granbell Hotel', transport:'Narita Express → Shinjuku', cost:'3500', map:'', note:'', status:'Planning' },
+      { id:'S-3', tripId:'TRIP-1', dateTime:'2025-07-02T09:00', detail:'Visit Senso-ji Temple', transport:'Tokyo Metro (Asakusa Line)', cost:'500', map:'https://maps.google.com', note:'Go early to avoid crowd', status:'Planning' },
+      { id:'S-4', tripId:'TRIP-3', dateTime:'2025-09-05T07:30', detail:'Fly BKK → CDG (AF164)', transport:'Suvarnabhumi Airport', cost:'45000', map:'', note:'', status:'Confirmed' },
+      { id:'S-5', tripId:'TRIP-3', dateTime:'2025-09-06T10:00', detail:'Visit the Louvre Museum', transport:'Métro Line 1 (Palais Royal)', cost:'1700', map:'https://maps.google.com', note:'Book tickets in advance', status:'Planning' },
+    ];
 
-    function load() {
-      var raw = localStorage.getItem(KEY);
-      if (!raw) { localStorage.setItem(KEY, JSON.stringify(SAMPLE)); return SAMPLE.slice(); }
+    function loadTrips() {
+      var raw = localStorage.getItem(TRIP_KEY);
+      if (!raw) { localStorage.setItem(TRIP_KEY, JSON.stringify(SAMPLE_TRIPS)); return SAMPLE_TRIPS.slice(); }
       return JSON.parse(raw);
     }
-    function save(trips) { localStorage.setItem(KEY, JSON.stringify(trips)); }
+    function saveTrips(trips) { localStorage.setItem(TRIP_KEY, JSON.stringify(trips)); }
+
+    function loadScheds() {
+      var raw = localStorage.getItem(SCHED_KEY);
+      if (!raw) { localStorage.setItem(SCHED_KEY, JSON.stringify(SAMPLE_SCHEDS)); return SAMPLE_SCHEDS.slice(); }
+      return JSON.parse(raw);
+    }
+    function saveScheds(scheds) { localStorage.setItem(SCHED_KEY, JSON.stringify(scheds)); }
 
     function makeRunner() {
       var _ok, _err;
       var r = {
         withSuccessHandler: function (fn) { _ok  = fn; return r; },
         withFailureHandler: function (fn) { _err = fn; return r; },
+
+        // ── Trips ──
         getTrips: function () {
-          setTimeout(function () { _ok && _ok(load()); }, 300);
+          setTimeout(function () { _ok && _ok(loadTrips()); }, 300);
         },
         addTrip: function (trip) {
           setTimeout(function () {
             trip.id = 'TRIP-' + Date.now();
-            var trips = load(); trips.push(trip); save(trips);
+            var trips = loadTrips(); trips.push(trip); saveTrips(trips);
             _ok && _ok({ success: true, id: trip.id });
           }, 250);
         },
         updateTrip: function (trip) {
           setTimeout(function () {
-            var trips = load();
-            $.each(trips, function (i, t) {
-              if (t.id === trip.id) { trips[i] = trip; return false; }
-            });
-            save(trips);
+            var trips = loadTrips();
+            $.each(trips, function (i, t) { if (t.id === trip.id) { trips[i] = trip; return false; } });
+            saveTrips(trips);
             _ok && _ok({ success: true });
           }, 250);
         },
         deleteTrip: function (id) {
           setTimeout(function () {
-            save($.grep(load(), function (t) { return t.id !== id; }));
+            saveTrips($.grep(loadTrips(), function (t) { return t.id !== id; }));
+            _ok && _ok({ success: true });
+          }, 250);
+        },
+
+        // ── Schedules ──
+        getSchedulesByTripId: function (tripId) {
+          setTimeout(function () {
+            var list = $.grep(loadScheds(), function (s) { return s.tripId === tripId; });
+            list.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+            _ok && _ok(list);
+          }, 250);
+        },
+        addSchedule: function (sched) {
+          setTimeout(function () {
+            sched.id = 'S-' + Date.now();
+            var scheds = loadScheds(); scheds.push(sched); saveScheds(scheds);
+            _ok && _ok({ success: true, id: sched.id });
+          }, 250);
+        },
+        updateSchedule: function (sched) {
+          setTimeout(function () {
+            var scheds = loadScheds();
+            $.each(scheds, function (i, s) { if (s.id === sched.id) { scheds[i] = sched; return false; } });
+            saveScheds(scheds);
+            _ok && _ok({ success: true });
+          }, 250);
+        },
+        deleteSchedule: function (id) {
+          setTimeout(function () {
+            saveScheds($.grep(loadScheds(), function (s) { return s.id !== id; }));
             _ok && _ok({ success: true });
           }, 250);
         }
@@ -68,10 +114,16 @@
   }
 
   // ── State ────────────────────────────────────────────────
-  var allTrips       = [];
-  var editingId      = null;
+  var allTrips        = [];
+  var editingId       = null;
   var pendingDeleteId = null;
-  var activeFilter   = '';
+  var activeFilter    = '';
+
+  // Schedule state
+  var currentTrip       = null;
+  var allSchedules      = [];
+  var editingSchedId    = null;
+  var pendingSchedDelId = null;
 
   // ── DOM shortcuts ────────────────────────────────────────
   var $tripList     = $('#trip-list');
@@ -104,10 +156,17 @@
       renderTrips();
     });
 
-    // Status select inside the form sheet
+    // Status select inside the trip form sheet
     $('#field-status').select2({
       minimumResultsForSearch: Infinity,
       dropdownParent: $('#trip-sheet'),
+      width: '100%'
+    });
+
+    // Status select inside the schedule form sheet
+    $('#sf-status').select2({
+      minimumResultsForSearch: Infinity,
+      dropdownParent: $('#sched-form-sheet'),
       width: '100%'
     });
   }
@@ -153,14 +212,33 @@
       renderTrips();
     });
 
-    // Confirm delete
+    // Confirm delete trip
     $('#confirm-cancel').on('click', closeConfirm);
     $('#confirm-backdrop').on('click', closeConfirm);
     $('#confirm-delete').on('click', confirmDelete);
 
+    // Schedule list sheet
+    $('#schedule-back').on('click', closeScheduleSheet);
+    $('#schedule-backdrop').on('click', closeScheduleSheet);
+    $('#btn-add-schedule, #btn-empty-schedule').on('click', function () { openSchedForm(null); });
+    $('#btn-export-pdf').on('click', exportTripPDF);
+
+    // Schedule form sheet
+    $('#sched-form-close, #sf-cancel').on('click', closeSchedForm);
+    $('#sched-form-backdrop').on('click', closeSchedForm);
+    $('#sf-save').on('click', handleSchedSave);
+
+    // Schedule delete confirm
+    $('#sched-del-cancel').on('click', closeSchedDel);
+    $('#sched-del-backdrop').on('click', closeSchedDel);
+    $('#sched-del-confirm').on('click', confirmSchedDel);
+
     // ESC key
     $(document).on('keydown', function (e) {
-      if (e.key === 'Escape') { closeSheet(); closeConfirm(); }
+      if (e.key === 'Escape') {
+        closeSchedDel(); closeSchedForm(); closeScheduleSheet();
+        closeSheet(); closeConfirm();
+      }
     });
   }
 
@@ -254,6 +332,13 @@
               '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
             '</svg>',
           '</button>',
+          '<button class="card-action-btn sched" data-action="schedule" aria-label="Schedule">',
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
+              '<rect x="3" y="4" width="18" height="18" rx="2"/>',
+              '<line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+              '<line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="16" y2="18"/>',
+            '</svg>',
+          '</button>',
           '<button class="card-action-btn del" data-action="delete" aria-label="Delete">',
             '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
               '<polyline points="3 6 5 6 21 6"/>',
@@ -267,6 +352,7 @@
     ].join(''));
 
     $card.find('[data-action="edit"]').on('click', function () { openEditSheet(trip); });
+    $card.find('[data-action="schedule"]').on('click', function () { openScheduleSheet(trip); });
     $card.find('[data-action="delete"]').on('click', function () { openConfirm(trip); });
 
     return $card;
@@ -477,6 +563,316 @@
       return months[parseInt(p[1], 10) - 1] + ' ' + parseInt(p[2], 10) + ', ' + p[0];
     }
     return fmt(start) + (end ? ' → ' + fmt(end) : '');
+  }
+
+  // ── Schedule list ─────────────────────────────────────────
+  function openScheduleSheet(trip) {
+    currentTrip = trip;
+    allSchedules = [];
+    $('#schedule-trip-name').text(trip.name);
+    $('#schedule-trip-dest').text(trip.destination);
+    $('#schedule-list').empty();
+    $('#schedule-empty').addClass('hidden');
+    $('#schedule-loading').removeClass('hidden');
+    openSheet('#schedule-sheet', '#schedule-backdrop');
+    google.script.run
+      .withSuccessHandler(function (list) {
+        allSchedules = list;
+        $('#schedule-loading').addClass('hidden');
+        renderSchedules();
+      })
+      .withFailureHandler(function (err) {
+        $('#schedule-loading').addClass('hidden');
+        showToast('Failed to load schedules: ' + err.message, 'error');
+      })
+      .getSchedulesByTripId(trip.id);
+  }
+
+  function closeScheduleSheet() {
+    $('#schedule-sheet').removeClass('open');
+    setTimeout(function () {
+      $('#schedule-sheet').addClass('hidden');
+      $('#schedule-backdrop').addClass('hidden');
+      $('body').css('overflow', '');
+      currentTrip = null;
+      allSchedules = [];
+    }, 330);
+  }
+
+  function renderSchedules() {
+    var $list = $('#schedule-list').empty();
+    if (allSchedules.length === 0) {
+      $('#schedule-empty').removeClass('hidden');
+      return;
+    }
+    $('#schedule-empty').addClass('hidden');
+    $.each(allSchedules, function (_, s) { $list.append(buildSchedItem(s)); });
+  }
+
+  function buildSchedItem(s) {
+    var cls   = 's-' + s.status.toLowerCase();
+    var dt    = formatDateTime(s.dateTime);
+    var cost  = s.cost ? '฿' + Number(s.cost).toLocaleString() : '';
+    var mapHtml = s.map
+      ? '<div class="sched-meta-row"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><a href="' + esc(s.map) + '" target="_blank">View on Map</a></div>'
+      : '';
+    var transportHtml = s.transport
+      ? '<div class="sched-meta-row"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>' + esc(s.transport) + '</div>'
+      : '';
+    var costHtml = cost
+      ? '<div class="sched-meta-row"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>' + cost + '</div>'
+      : '';
+    var noteHtml = s.note ? '<div class="sched-note">' + esc(s.note) + '</div>' : '';
+
+    var $item = $([
+      '<div class="sched-item" data-id="' + esc(s.id) + '">',
+        '<div class="sched-time-col">',
+          '<div class="sched-time">' + dt.time + '</div>',
+          '<div class="sched-date">' + dt.date + '</div>',
+        '</div>',
+        '<div class="sched-axis">',
+          '<div class="sched-dot ' + cls + '"></div>',
+          '<div class="sched-line"></div>',
+        '</div>',
+        '<div class="sched-card">',
+          '<div class="sched-card-detail">' + esc(s.detail) + '</div>',
+          '<div class="sched-card-meta">',
+            transportHtml, costHtml, mapHtml,
+          '</div>',
+          noteHtml,
+          '<div class="sched-card-footer">',
+            '<span class="sched-badge ' + cls + '">' + esc(s.status) + '</span>',
+            '<div class="sched-card-actions">',
+              '<button class="sched-act-btn" data-action="edit">Edit</button>',
+              '<button class="sched-act-btn del" data-action="delete">Delete</button>',
+            '</div>',
+          '</div>',
+        '</div>',
+      '</div>'
+    ].join(''));
+
+    $item.find('[data-action="edit"]').on('click', function () { openSchedForm(s); });
+    $item.find('[data-action="delete"]').on('click', function () { openSchedDel(s); });
+    return $item;
+  }
+
+  // ── Schedule form ──────────────────────────────────────────
+  function openSchedForm(sched) {
+    editingSchedId = sched ? sched.id : null;
+    $('#sched-form-title').text(sched ? 'Edit Schedule' : 'Add Schedule');
+    $('#sf-save-label').text(sched ? 'Update' : 'Save');
+    $('#sched-form').trigger('reset');
+    $('#sched-form .error').removeClass('error');
+
+    if (sched) {
+      $('#sf-id').val(sched.id);
+      $('#sf-trip-id').val(sched.tripId);
+      $('#sf-datetime').val(sched.dateTime);
+      $('#sf-detail').val(sched.detail);
+      $('#sf-transport').val(sched.transport || '');
+      $('#sf-cost').val(sched.cost || '');
+      $('#sf-map').val(sched.map || '');
+      $('#sf-note').val(sched.note || '');
+      $('#sf-status').val(sched.status).trigger('change');
+    } else {
+      $('#sf-trip-id').val(currentTrip ? currentTrip.id : '');
+      $('#sf-status').val('Planning').trigger('change');
+    }
+    openSheet('#sched-form-sheet', '#sched-form-backdrop');
+    setTimeout(function () { $('#sf-datetime').focus(); }, 350);
+  }
+
+  function closeSchedForm() {
+    $('#sched-form-sheet').removeClass('open');
+    setTimeout(function () {
+      $('#sched-form-sheet').addClass('hidden');
+      $('#sched-form-backdrop').addClass('hidden');
+      editingSchedId = null;
+    }, 330);
+  }
+
+  function handleSchedSave() {
+    $('#sched-form .error').removeClass('error');
+    var ok = true;
+    $.each(['sf-datetime', 'sf-detail'], function (_, id) {
+      var $el = $('#' + id);
+      if (!$el.val().trim()) { $el.addClass('error'); ok = false; }
+    });
+    if (!ok) { showToast('Please fill required fields', 'error'); return; }
+
+    var sched = {
+      id:        $('#sf-id').val(),
+      tripId:    $('#sf-trip-id').val(),
+      dateTime:  $('#sf-datetime').val(),
+      detail:    $('#sf-detail').val().trim(),
+      transport: $('#sf-transport').val().trim(),
+      cost:      $('#sf-cost').val(),
+      map:       $('#sf-map').val().trim(),
+      note:      $('#sf-note').val().trim(),
+      status:    $('#sf-status').val()
+    };
+
+    $('#sf-save').prop('disabled', true);
+    $('#sf-save-label').addClass('hidden');
+    $('#sf-spinner').removeClass('hidden');
+
+    var done = function () {
+      $('#sf-save').prop('disabled', false);
+      $('#sf-save-label').removeClass('hidden');
+      $('#sf-spinner').addClass('hidden');
+    };
+
+    if (editingSchedId) {
+      google.script.run
+        .withSuccessHandler(function (res) {
+          done();
+          if (!res.success) { showToast(res.error || 'Update failed', 'error'); return; }
+          $.each(allSchedules, function (i, s) { if (s.id === editingSchedId) { allSchedules[i] = sched; return false; } });
+          allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+          closeSchedForm();
+          renderSchedules();
+          showToast('Schedule updated', 'success');
+        })
+        .withFailureHandler(function (err) { done(); showToast('Error: ' + err.message, 'error'); })
+        .updateSchedule(sched);
+    } else {
+      google.script.run
+        .withSuccessHandler(function (res) {
+          done();
+          if (!res.success) { showToast(res.error || 'Save failed', 'error'); return; }
+          sched.id = res.id;
+          allSchedules.push(sched);
+          allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+          closeSchedForm();
+          renderSchedules();
+          showToast('Schedule added', 'success');
+        })
+        .withFailureHandler(function (err) { done(); showToast('Error: ' + err.message, 'error'); })
+        .addSchedule(sched);
+    }
+  }
+
+  // ── Schedule delete ────────────────────────────────────────
+  function openSchedDel(sched) {
+    pendingSchedDelId = sched.id;
+    $('#sched-del-name').text(sched.detail);
+    openSheet('#sched-del-sheet', '#sched-del-backdrop');
+  }
+
+  function closeSchedDel() {
+    $('#sched-del-sheet').removeClass('open');
+    setTimeout(function () {
+      $('#sched-del-sheet').addClass('hidden');
+      $('#sched-del-backdrop').addClass('hidden');
+      pendingSchedDelId = null;
+    }, 330);
+  }
+
+  function confirmSchedDel() {
+    if (!pendingSchedDelId) return;
+    var id = pendingSchedDelId;
+    closeSchedDel();
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (!res.success) { showToast(res.error || 'Delete failed', 'error'); return; }
+        allSchedules = $.grep(allSchedules, function (s) { return s.id !== id; });
+        renderSchedules();
+        showToast('Schedule deleted', 'success');
+      })
+      .withFailureHandler(function (err) { showToast('Error: ' + err.message, 'error'); })
+      .deleteSchedule(id);
+  }
+
+  // ── Export PDF ────────────────────────────────────────────
+  function exportTripPDF() {
+    if (!currentTrip) return;
+    var trip   = currentTrip;
+    var scheds = allSchedules;
+
+    var doc = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    // Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text(trip.name, 14, 22);
+
+    // Sub-info
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(95, 99, 104);
+    doc.text(trip.destination, 14, 30);
+    doc.text(formatDateRange(trip.startDate, trip.endDate), 14, 36);
+
+    // Status badge text
+    doc.setFontSize(9);
+    doc.text('Status: ' + trip.status, 14, 42);
+    doc.setTextColor(0, 0, 0);
+
+    // Divider
+    doc.setDrawColor(224, 224, 224);
+    doc.line(14, 46, 196, 46);
+
+    if (scheds.length === 0) {
+      doc.setFontSize(11);
+      doc.setTextColor(95, 99, 104);
+      doc.text('No schedules yet.', 14, 58);
+    } else {
+      var rows = $.map(scheds, function (s) {
+        var dt = formatDateTime(s.dateTime);
+        return [[
+          dt.date + (dt.time ? '\n' + dt.time : ''),
+          s.detail || '',
+          s.transport || '',
+          s.cost ? '฿' + Number(s.cost).toLocaleString() : '',
+          s.status || '',
+          s.note || ''
+        ]];
+      });
+
+      doc.autoTable({
+        startY: 50,
+        head: [['Date & Time', 'Detail', 'Transport', 'Cost', 'Status', 'Note']],
+        body: rows,
+        styles: { fontSize: 8.5, cellPadding: 3, valign: 'top', overflow: 'linebreak' },
+        headStyles: { fillColor: [26, 115, 232], textColor: 255, fontStyle: 'bold', fontSize: 9 },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+        columnStyles: {
+          0: { cellWidth: 24 },
+          1: { cellWidth: 55 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 20 },
+          4: { cellWidth: 24 },
+          5: { cellWidth: 'auto' }
+        },
+        didDrawPage: function (data) {
+          // Footer with page number
+          var pageCount = doc.internal.getNumberOfPages();
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(
+            'Page ' + data.pageNumber + ' of ' + pageCount,
+            data.settings.margin.left,
+            doc.internal.pageSize.height - 8
+          );
+          doc.text('Trip Manager', 196, doc.internal.pageSize.height - 8, { align: 'right' });
+        }
+      });
+    }
+
+    var filename = trip.name.replace(/[^a-zA-Z0-9ก-๙\s]/g, '').replace(/\s+/g, '_') + '_plan.pdf';
+    doc.save(filename);
+  }
+
+  // ── Date/time helper ───────────────────────────────────────
+  function formatDateTime(dt) {
+    if (!dt) return { date: '—', time: '—' };
+    var parts  = dt.split('T');
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var d      = parts[0].split('-');
+    return {
+      date: months[parseInt(d[1], 10) - 1] + ' ' + parseInt(d[2], 10),
+      time: parts[1] ? parts[1].substring(0, 5) : ''
+    };
   }
 
   // ── Boot ──────────────────────────────────────────────────

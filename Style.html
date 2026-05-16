@@ -275,7 +275,8 @@
     transition: background var(--ease), color var(--ease);
     min-width: 48px;
   }
-  .card-action-btn:first-child { border-bottom: 1px solid var(--c-border); }
+  .card-action-btn + .card-action-btn { border-top: 1px solid var(--c-border); }
+  .card-action-btn.sched:hover { background: var(--s-planning); color: var(--s-planning-t); }
   .card-action-btn:hover { background: var(--c-bg); color: var(--c-text); }
   .card-action-btn.del:hover { background: var(--s-cancelled); color: var(--c-danger); }
 
@@ -606,4 +607,183 @@
 
   /* ── Utils ───────────────────────────────────────────── */
   .hidden { display: none !important; }
+
+  /* ── Schedule list sheet ─────────────────────────────── */
+  #schedule-backdrop  { z-index: 215; }
+  #schedule-sheet     { z-index: 220; max-height: 95dvh; }
+  @media (min-width: 640px) { #schedule-sheet { width: 600px; } }
+
+  .sheet-full { max-height: 95dvh; }
+
+  .sheet-back {
+    background: none; border: none; cursor: pointer;
+    color: var(--c-text-muted);
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--ease);
+  }
+  .sheet-back:hover { background: var(--c-bg); }
+
+  .sheet-header-info {
+    flex: 1;
+    min-width: 0;
+    padding: 0 8px;
+  }
+  .sheet-header-info .sheet-title {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sheet-subtitle {
+    font-size: 12px;
+    color: var(--c-text-muted);
+    margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .btn-export-pdf {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: transparent; color: var(--c-text-muted); border: 1.5px solid var(--c-border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: background var(--ease), color var(--ease), border-color var(--ease);
+  }
+  .btn-export-pdf:hover { background: #fce8e6; color: var(--c-danger); border-color: var(--c-danger); }
+
+  .btn-add-sched {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--c-primary); color: #fff; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: background var(--ease);
+  }
+  .btn-add-sched:hover { background: var(--c-primary-dk); }
+
+  .sched-body { padding-top: 4px; gap: 0; }
+
+  /* ── Schedule form sheet (higher z) ─────────────────── */
+  .sched-form-bd   { z-index: 230; }
+  .sched-form-sheet { z-index: 240; }
+  @media (min-width: 640px) { .sched-form-sheet { width: 520px; } }
+
+  /* ── Timeline ────────────────────────────────────────── */
+  .schedule-timeline { padding: 8px 20px 20px; }
+
+  .sched-item {
+    display: flex;
+    gap: 10px;
+    padding-bottom: 4px;
+  }
+  .sched-time-col {
+    width: 48px;
+    flex-shrink: 0;
+    text-align: right;
+    padding-top: 6px;
+  }
+  .sched-time { font-size: 11px; font-weight: 700; color: var(--c-text); line-height: 1.2; }
+  .sched-date { font-size: 10px; color: var(--c-text-muted); }
+
+  .sched-axis {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    width: 20px;
+  }
+  .sched-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    border: 2.5px solid currentColor;
+    background: var(--c-surface);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+  .sched-dot.s-planning   { color: var(--s-planning-t); }
+  .sched-dot.s-confirmed  { color: var(--s-active-t);   background: var(--s-active-t); }
+  .sched-dot.s-done       { color: var(--s-completed-t); background: var(--s-completed-t); }
+  .sched-dot.s-cancelled  { color: var(--s-cancelled-t); }
+
+  .sched-line {
+    width: 2px; flex: 1;
+    background: var(--c-border);
+    margin: 4px 0 0;
+    min-height: 16px;
+  }
+  .sched-item:last-child .sched-line { display: none; }
+
+  .sched-card {
+    flex: 1;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-sm);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    min-width: 0;
+  }
+  .sched-card-detail {
+    font-size: 14px; font-weight: 600;
+    color: var(--c-text); margin-bottom: 6px;
+  }
+  .sched-card-meta {
+    display: flex; flex-direction: column;
+    gap: 4px; font-size: 12px; color: var(--c-text-muted);
+  }
+  .sched-meta-row {
+    display: flex; align-items: center; gap: 5px;
+  }
+  .sched-meta-row a { color: var(--c-primary); text-decoration: none; }
+  .sched-note {
+    font-size: 12px; color: var(--c-text-muted);
+    margin-top: 6px; line-height: 1.5;
+    border-top: 1px solid var(--c-border);
+    padding-top: 6px;
+  }
+  .sched-card-footer {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--c-border);
+  }
+  .sched-badge {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  .sched-badge.s-planning  { background: var(--s-planning);  color: var(--s-planning-t); }
+  .sched-badge.s-confirmed { background: var(--s-active);    color: var(--s-active-t); }
+  .sched-badge.s-done      { background: var(--s-completed); color: var(--s-completed-t); }
+  .sched-badge.s-cancelled { background: var(--s-cancelled); color: var(--s-cancelled-t); }
+
+  .sched-card-actions { display: flex; gap: 4px; }
+  .sched-act-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--c-text-muted); padding: 4px 6px;
+    border-radius: 6px; font-size: 12px; font-weight: 500;
+    display: flex; align-items: center; gap: 3px;
+    transition: background var(--ease), color var(--ease);
+  }
+  .sched-act-btn:hover          { background: var(--c-bg); color: var(--c-text); }
+  .sched-act-btn.del:hover      { background: var(--s-cancelled); color: var(--c-danger); }
+
+  /* ── Schedule empty state ────────────────────────────── */
+  .sched-empty {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+    padding: 48px 24px; color: var(--c-text-muted);
+    text-align: center;
+  }
+  .sched-empty p { font-size: 14px; }
+
+  /* ── Select2 overrides for sched-form-sheet ─────────── */
+  .sched-form-sheet .select2-container { width: 100% !important; }
+  .sched-form-sheet .select2-container--default .select2-selection--single {
+    height: 48px; border: 1.5px solid var(--c-border);
+    border-radius: var(--r-sm); display: flex; align-items: center;
+  }
+  .sched-form-sheet .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 48px; padding-left: 13px; padding-right: 36px;
+    font-size: 16px; color: var(--c-text);
+  }
+  .sched-form-sheet .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 48px; right: 10px;
+  }
 </style>
