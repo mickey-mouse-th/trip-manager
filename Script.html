@@ -1,0 +1,425 @@
+<script>
+(function ($) {
+  'use strict';
+
+  // ── State ────────────────────────────────────────────────
+  var allTrips       = [];
+  var editingId      = null;
+  var pendingDeleteId = null;
+  var activeFilter   = '';
+
+  // ── DOM shortcuts ────────────────────────────────────────
+  var $tripList     = $('#trip-list');
+  var $emptyState   = $('#empty-state');
+  var $loadingState = $('#loading-state');
+  var $searchInput  = $('#search-input');
+  var $searchClear  = $('#search-clear');
+  var $modalTitle   = $('#modal-title');
+  var $btnSaveLabel = $('#btn-save-label');
+  var $btnSpinner   = $('#btn-spinner');
+  var $btnSave      = $('#btn-save');
+  var $confirmName  = $('#confirm-name');
+
+  // ── Init ─────────────────────────────────────────────────
+  function init() {
+    initSelect2();
+    bindEvents();
+    loadTrips();
+  }
+
+  // ── Select2 ──────────────────────────────────────────────
+  function initSelect2() {
+    // Filter dropdown in toolbar
+    $('#filter-status').select2({
+      minimumResultsForSearch: Infinity,
+      width: 'resolve'
+    }).on('change', function () {
+      activeFilter = $(this).val();
+      syncStatPills();
+      renderTrips();
+    });
+
+    // Status select inside the form sheet
+    $('#field-status').select2({
+      minimumResultsForSearch: Infinity,
+      dropdownParent: $('#trip-sheet'),
+      width: '100%'
+    });
+  }
+
+  function setFilterSelect(val) {
+    $('#filter-status').val(val).trigger('change.select2');
+  }
+
+  function setStatusField(val) {
+    $('#field-status').val(val).trigger('change');
+  }
+
+  // ── Events ───────────────────────────────────────────────
+  function bindEvents() {
+    // Open sheet
+    $('#btn-add-trip-header, #btn-add-trip-fab, #btn-empty-add').on('click', openAddSheet);
+
+    // Close sheet
+    $('#modal-close, #btn-cancel').on('click', closeSheet);
+    $('#sheet-backdrop').on('click', closeSheet);
+
+    // Save
+    $('#btn-save').on('click', handleSave);
+
+    // Search
+    $searchInput.on('input', function () {
+      $searchClear.toggleClass('hidden', !this.value);
+      renderTrips();
+    });
+    $searchClear.on('click', function () {
+      $searchInput.val('');
+      $searchClear.addClass('hidden');
+      renderTrips();
+    });
+
+    // Stat pills as filter buttons
+    $('.stat-pill').on('click', function () {
+      var filter = $(this).data('filter');
+      activeFilter = filter;
+      setFilterSelect(filter);
+      syncStatPills();
+      renderTrips();
+    });
+
+    // Confirm delete
+    $('#confirm-cancel').on('click', closeConfirm);
+    $('#confirm-backdrop').on('click', closeConfirm);
+    $('#confirm-delete').on('click', confirmDelete);
+
+    // ESC key
+    $(document).on('keydown', function (e) {
+      if (e.key === 'Escape') { closeSheet(); closeConfirm(); }
+    });
+  }
+
+  // ── Stat pills sync ───────────────────────────────────────
+  function syncStatPills() {
+    $('.stat-pill').removeAttr('data-selected').removeClass('active');
+    var $active = $('.stat-pill[data-filter="' + activeFilter + '"]');
+    $active.attr('data-selected', '').addClass('active');
+  }
+
+  // ── Data ─────────────────────────────────────────────────
+  function loadTrips() {
+    $loadingState.removeClass('hidden');
+    google.script.run
+      .withSuccessHandler(function (trips) {
+        allTrips = trips;
+        $loadingState.addClass('hidden');
+        renderTrips();
+        updateStats();
+      })
+      .withFailureHandler(function (err) {
+        $loadingState.addClass('hidden');
+        showToast('Failed to load trips: ' + err.message, 'error');
+      })
+      .getTrips();
+  }
+
+  // ── Render ────────────────────────────────────────────────
+  function getFiltered() {
+    var q = $searchInput.val().toLowerCase().trim();
+    return allTrips.filter(function (t) {
+      var matchQ = !q ||
+        t.name.toLowerCase().indexOf(q) !== -1 ||
+        t.destination.toLowerCase().indexOf(q) !== -1 ||
+        (t.notes || '').toLowerCase().indexOf(q) !== -1;
+      var matchS = !activeFilter || t.status === activeFilter;
+      return matchQ && matchS;
+    });
+  }
+
+  function renderTrips() {
+    $tripList.find('.trip-card').remove();
+    var filtered = getFiltered();
+
+    if (filtered.length === 0) {
+      $emptyState.removeClass('hidden');
+      return;
+    }
+    $emptyState.addClass('hidden');
+
+    $.each(filtered, function (_, trip) {
+      $tripList.append(buildCard(trip));
+    });
+  }
+
+  function buildCard(trip) {
+    var dateRange = formatDateRange(trip.startDate, trip.endDate);
+    var statusClass = 'status-' + trip.status.toLowerCase();
+    var badgeClass  = 'badge-' + trip.status.toLowerCase();
+    var notesHtml   = trip.notes
+      ? '<div class="trip-card-notes">' + esc(trip.notes) + '</div>'
+      : '';
+
+    var $card = $([
+      '<div class="trip-card ' + statusClass + '" data-id="' + esc(trip.id) + '">',
+        '<div class="trip-card-body">',
+          '<div class="trip-card-top">',
+            '<div class="trip-card-name">' + esc(trip.name) + '</div>',
+            '<span class="badge ' + badgeClass + '">' + esc(trip.status) + '</span>',
+          '</div>',
+          '<div class="trip-card-dest">',
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
+              '<path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>',
+              '<circle cx="12" cy="10" r="3"/>',
+            '</svg>',
+            esc(trip.destination),
+          '</div>',
+          '<div class="trip-card-meta">',
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
+              '<rect x="3" y="4" width="18" height="18" rx="2"/>',
+              '<line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+            '</svg>',
+            dateRange,
+          '</div>',
+          notesHtml,
+        '</div>',
+        '<div class="trip-card-actions">',
+          '<button class="card-action-btn" data-action="edit" aria-label="Edit">',
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
+              '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>',
+              '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+            '</svg>',
+          '</button>',
+          '<button class="card-action-btn del" data-action="delete" aria-label="Delete">',
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
+              '<polyline points="3 6 5 6 21 6"/>',
+              '<path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',
+              '<path d="M10 11v6"/><path d="M14 11v6"/>',
+              '<path d="M9 6V4h6v2"/>',
+            '</svg>',
+          '</button>',
+        '</div>',
+      '</div>'
+    ].join(''));
+
+    $card.find('[data-action="edit"]').on('click', function () { openEditSheet(trip); });
+    $card.find('[data-action="delete"]').on('click', function () { openConfirm(trip); });
+
+    return $card;
+  }
+
+  function updateStats() {
+    $('#stat-total').text(allTrips.length);
+    $('#stat-planning').text(countByStatus('Planning'));
+    $('#stat-active').text(countByStatus('Active'));
+    $('#stat-completed').text(countByStatus('Completed'));
+    $('#stat-cancelled').text(countByStatus('Cancelled'));
+  }
+
+  function countByStatus(s) {
+    return allTrips.filter(function (t) { return t.status === s; }).length;
+  }
+
+  // ── Sheet open / close ────────────────────────────────────
+  function openAddSheet() {
+    editingId = null;
+    $modalTitle.text('Add Trip');
+    $btnSaveLabel.text('Save Trip');
+    $('#trip-form')[0].reset();
+    clearErrors();
+    setStatusField('Planning');
+    openSheet('#trip-sheet', '#sheet-backdrop');
+    setTimeout(function () { $('#field-name').focus(); }, 350);
+  }
+
+  function openEditSheet(trip) {
+    editingId = trip.id;
+    $modalTitle.text('Edit Trip');
+    $btnSaveLabel.text('Update Trip');
+    clearErrors();
+
+    $('#field-id').val(trip.id);
+    $('#field-name').val(trip.name);
+    $('#field-destination').val(trip.destination);
+    $('#field-start').val(trip.startDate);
+    $('#field-end').val(trip.endDate);
+    setStatusField(trip.status);
+    $('#field-notes').val(trip.notes || '');
+
+    openSheet('#trip-sheet', '#sheet-backdrop');
+  }
+
+  function openSheet(sheetSel, backdropSel) {
+    $(backdropSel).removeClass('hidden');
+    $(sheetSel).removeClass('hidden');
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        $(sheetSel).addClass('open');
+      });
+    });
+    $('body').css('overflow', 'hidden');
+  }
+
+  function closeSheet() {
+    $('#trip-sheet').removeClass('open');
+    setTimeout(function () {
+      $('#trip-sheet').addClass('hidden');
+      $('#sheet-backdrop').addClass('hidden');
+      $('body').css('overflow', '');
+      editingId = null;
+    }, 330);
+  }
+
+  // ── Save ─────────────────────────────────────────────────
+  function handleSave() {
+    if (!validateForm()) return;
+
+    var trip = {
+      id:          $('#field-id').val(),
+      name:        $('#field-name').val().trim(),
+      destination: $('#field-destination').val().trim(),
+      startDate:   $('#field-start').val(),
+      endDate:     $('#field-end').val(),
+      status:      $('#field-status').val(),
+      notes:       $('#field-notes').val().trim()
+    };
+
+    setSaving(true);
+
+    if (editingId) {
+      google.script.run
+        .withSuccessHandler(function (res) {
+          setSaving(false);
+          if (!res.success) { showToast(res.error || 'Update failed', 'error'); return; }
+          var idx = indexById(editingId);
+          if (idx !== -1) allTrips[idx] = trip;
+          closeSheet();
+          renderTrips();
+          updateStats();
+          showToast('Trip updated', 'success');
+        })
+        .withFailureHandler(onSaveError)
+        .updateTrip(trip);
+    } else {
+      google.script.run
+        .withSuccessHandler(function (res) {
+          setSaving(false);
+          if (!res.success) { showToast(res.error || 'Save failed', 'error'); return; }
+          trip.id = res.id;
+          allTrips.push(trip);
+          closeSheet();
+          renderTrips();
+          updateStats();
+          showToast('Trip added', 'success');
+        })
+        .withFailureHandler(onSaveError)
+        .addTrip(trip);
+    }
+  }
+
+  function onSaveError(err) {
+    setSaving(false);
+    showToast('Error: ' + err.message, 'error');
+  }
+
+  function setSaving(on) {
+    $btnSave.prop('disabled', on);
+    $btnSaveLabel.toggleClass('hidden', on);
+    $btnSpinner.toggleClass('hidden', !on);
+  }
+
+  // ── Validation ────────────────────────────────────────────
+  function validateForm() {
+    clearErrors();
+    var ok = true;
+    $.each(['field-name', 'field-destination', 'field-start', 'field-end'], function (_, id) {
+      var $el = $('#' + id);
+      if (!$el.val().trim()) { $el.addClass('error'); ok = false; }
+    });
+    var start = $('#field-start').val();
+    var end   = $('#field-end').val();
+    if (start && end && end < start) {
+      $('#field-end').addClass('error');
+      showToast('End date must be after start date', 'error');
+      ok = false;
+    }
+    return ok;
+  }
+
+  function clearErrors() {
+    $('#trip-form .error').removeClass('error');
+  }
+
+  // ── Delete confirm ────────────────────────────────────────
+  function openConfirm(trip) {
+    pendingDeleteId = trip.id;
+    $confirmName.text(trip.name);
+    openSheet('#confirm-sheet', '#confirm-backdrop');
+  }
+
+  function closeConfirm() {
+    $('#confirm-sheet').removeClass('open');
+    setTimeout(function () {
+      $('#confirm-sheet').addClass('hidden');
+      $('#confirm-backdrop').addClass('hidden');
+      $('body').css('overflow', '');
+      pendingDeleteId = null;
+    }, 330);
+  }
+
+  function confirmDelete() {
+    if (!pendingDeleteId) return;
+    var id = pendingDeleteId;
+    closeConfirm();
+
+    google.script.run
+      .withSuccessHandler(function (res) {
+        if (!res.success) { showToast(res.error || 'Delete failed', 'error'); return; }
+        allTrips = allTrips.filter(function (t) { return t.id !== id; });
+        renderTrips();
+        updateStats();
+        showToast('Trip deleted', 'success');
+      })
+      .withFailureHandler(function (err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .deleteTrip(id);
+  }
+
+  // ── Toast ─────────────────────────────────────────────────
+  function showToast(msg, type) {
+    var $t = $('<div class="toast' + (type ? ' toast-' + type : '') + '">').text(msg);
+    $('#toast-container').append($t);
+    setTimeout(function () { $t.remove(); }, 3200);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+  function esc(str) {
+    return $('<div>').text(String(str)).html();
+  }
+
+  function indexById(id) {
+    for (var i = 0; i < allTrips.length; i++) {
+      if (allTrips[i].id === id) return i;
+    }
+    return -1;
+  }
+
+  function formatDateRange(start, end) {
+    if (!start && !end) return 'No dates set';
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    function fmt(d) {
+      if (!d) return '?';
+      var p = d.split('-');
+      return months[parseInt(p[1], 10) - 1] + ' ' + parseInt(p[2], 10) + ', ' + p[0];
+    }
+    return fmt(start) + (end ? ' → ' + fmt(end) : '');
+  }
+
+  // ── Boot ──────────────────────────────────────────────────
+  $(function () {
+    init();
+    // Init "All" pill as selected
+    $('.stat-pill[data-filter=""]').attr('data-selected', '');
+  });
+
+}(jQuery));
+</script>
