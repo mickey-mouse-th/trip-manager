@@ -1,72 +1,71 @@
 <script>
-/* ── Dev mock: active when localStorage.dev_mock is set ─────────────── */
-(function () {
-  if (localStorage.getItem('dev_mock') !== '1') return;
-
-  var KEY = 'trip-mgr-trips';
-  var SAMPLE = [
-    { id:'TRIP-1', name:'Tokyo Adventure',  destination:'Tokyo, Japan',         startDate:'2025-07-01', endDate:'2025-07-14', status:'Planning',  notes:'Cherry blossom season' },
-    { id:'TRIP-2', name:'Bali Retreat',     destination:'Bali, Indonesia',      startDate:'2025-03-10', endDate:'2025-03-17', status:'Completed', notes:'Beach and temples' },
-    { id:'TRIP-3', name:'Paris Weekend',    destination:'Paris, France',        startDate:'2025-09-05', endDate:'2025-09-08', status:'Active',    notes:'Visit the Louvre' },
-    { id:'TRIP-4', name:'New York Trip',    destination:'New York, USA',        startDate:'2025-11-20', endDate:'2025-11-25', status:'Planning',  notes:'' },
-    { id:'TRIP-5', name:'Chiang Mai Slow',  destination:'Chiang Mai, Thailand', startDate:'2024-12-01', endDate:'2024-12-15', status:'Cancelled', notes:'Postponed' },
-  ];
-
-  function load() {
-    var raw = localStorage.getItem(KEY);
-    if (!raw) { localStorage.setItem(KEY, JSON.stringify(SAMPLE)); return SAMPLE.slice(); }
-    return JSON.parse(raw);
-  }
-  function save(trips) { localStorage.setItem(KEY, JSON.stringify(trips)); }
-
-  function makeRunner() {
-    var _ok, _err;
-    var r = {
-      withSuccessHandler: function (fn) { _ok  = fn; return r; },
-      withFailureHandler: function (fn) { _err = fn; return r; },
-      getTrips: function () {
-        setTimeout(function () { _ok && _ok(load()); }, 300);
-      },
-      addTrip: function (trip) {
-        setTimeout(function () {
-          trip.id = 'TRIP-' + Date.now();
-          var trips = load(); trips.push(trip); save(trips);
-          _ok && _ok({ success: true, id: trip.id });
-        }, 250);
-      },
-      updateTrip: function (trip) {
-        setTimeout(function () {
-          var trips = load();
-          $.each(trips, function (i, t) {
-            if (t.id === trip.id) { trips[i] = trip; return false; }
-          });
-          save(trips);
-          _ok && _ok({ success: true });
-        }, 250);
-      },
-      deleteTrip: function (id) {
-        setTimeout(function () {
-          save($.grep(load(), function (t) { return t.id !== id; }));
-          _ok && _ok({ success: true });
-        }, 250);
-      }
-    };
-    return r;
-  }
-
-  window.google = {
-    script: {
-      run: {
-        withSuccessHandler: function (fn) { return makeRunner().withSuccessHandler(fn); },
-        withFailureHandler: function (fn) { return makeRunner().withFailureHandler(fn); }
-      }
-    }
-  };
-}());
-/* ─────────────────────────────────────────────────────────────────────── */
-
 (function ($) {
   'use strict';
+
+  // ── Dev mock ──────────────────────────────────────────────
+  // Runs inside $(function(){}) so it always overrides window.google
+  // after Apps Script has injected it. Safe for both local and production.
+  function setupMock() {
+    var KEY = 'trip-mgr-trips';
+    var SAMPLE = [
+      { id:'TRIP-1', name:'Tokyo Adventure',  destination:'Tokyo, Japan',         startDate:'2025-07-01', endDate:'2025-07-14', status:'Planning',  notes:'Cherry blossom season' },
+      { id:'TRIP-2', name:'Bali Retreat',     destination:'Bali, Indonesia',      startDate:'2025-03-10', endDate:'2025-03-17', status:'Completed', notes:'Beach and temples' },
+      { id:'TRIP-3', name:'Paris Weekend',    destination:'Paris, France',        startDate:'2025-09-05', endDate:'2025-09-08', status:'Active',    notes:'Visit the Louvre' },
+      { id:'TRIP-4', name:'New York Trip',    destination:'New York, USA',        startDate:'2025-11-20', endDate:'2025-11-25', status:'Planning',  notes:'' },
+      { id:'TRIP-5', name:'Chiang Mai Slow',  destination:'Chiang Mai, Thailand', startDate:'2024-12-01', endDate:'2024-12-15', status:'Cancelled', notes:'Postponed' },
+    ];
+
+    function load() {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) { localStorage.setItem(KEY, JSON.stringify(SAMPLE)); return SAMPLE.slice(); }
+      return JSON.parse(raw);
+    }
+    function save(trips) { localStorage.setItem(KEY, JSON.stringify(trips)); }
+
+    function makeRunner() {
+      var _ok, _err;
+      var r = {
+        withSuccessHandler: function (fn) { _ok  = fn; return r; },
+        withFailureHandler: function (fn) { _err = fn; return r; },
+        getTrips: function () {
+          setTimeout(function () { _ok && _ok(load()); }, 300);
+        },
+        addTrip: function (trip) {
+          setTimeout(function () {
+            trip.id = 'TRIP-' + Date.now();
+            var trips = load(); trips.push(trip); save(trips);
+            _ok && _ok({ success: true, id: trip.id });
+          }, 250);
+        },
+        updateTrip: function (trip) {
+          setTimeout(function () {
+            var trips = load();
+            $.each(trips, function (i, t) {
+              if (t.id === trip.id) { trips[i] = trip; return false; }
+            });
+            save(trips);
+            _ok && _ok({ success: true });
+          }, 250);
+        },
+        deleteTrip: function (id) {
+          setTimeout(function () {
+            save($.grep(load(), function (t) { return t.id !== id; }));
+            _ok && _ok({ success: true });
+          }, 250);
+        }
+      };
+      return r;
+    }
+
+    window.google = {
+      script: {
+        run: {
+          withSuccessHandler: function (fn) { return makeRunner().withSuccessHandler(fn); },
+          withFailureHandler: function (fn) { return makeRunner().withFailureHandler(fn); }
+        }
+      }
+    };
+  }
 
   // ── State ────────────────────────────────────────────────
   var allTrips       = [];
@@ -482,8 +481,8 @@
 
   // ── Boot ──────────────────────────────────────────────────
   $(function () {
+    if (localStorage.getItem('dev_mock') === '1') setupMock();
     init();
-    // Init "All" pill as selected
     $('.stat-pill[data-filter=""]').attr('data-selected', '');
   });
 
