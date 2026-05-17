@@ -4,6 +4,8 @@ const HEADERS       = ['ID', 'Trip Name', 'Destination', 'Start Date', 'End Date
 const SCHED_SHEET   = 'Schedules';
 const SCHED_HEADERS = ['ID', 'TripID', 'DateTime', 'Detail', 'Transport', 'Cost', 'Map', 'Note', 'Status'];
 
+const CACHE_TTL = 300; // 5-minute safety-net TTL (writes always clear immediately)
+
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
@@ -15,6 +17,9 @@ function doGet() {
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
+
+// ─── Cache helper ─────────────────────────────────────────────────────────────
+function _cache() { return CacheService.getScriptCache(); }
 
 // ─── Trips sheet ──────────────────────────────────────────────────────────────
 
@@ -32,10 +37,13 @@ function getSheet() {
 }
 
 function getTrips() {
+  const cached = _cache().get('trips');
+  if (cached) return JSON.parse(cached);
+
   const sheet = getSheet();
   const data  = sheet.getDataRange().getValues();
   if (data.length <= 1) return [];
-  return data.slice(1).map(row => ({
+  const trips = data.slice(1).map(row => ({
     id:          row[0],
     name:        row[1],
     destination: row[2],
@@ -44,12 +52,15 @@ function getTrips() {
     status:      row[5],
     notes:       row[6],
   }));
+  _cache().put('trips', JSON.stringify(trips), CACHE_TTL);
+  return trips;
 }
 
 function addTrip(trip) {
   const sheet = getSheet();
   const id    = 'TRIP-' + Date.now();
   sheet.appendRow([id, trip.name, trip.destination, trip.startDate, trip.endDate, trip.status, trip.notes || '']);
+  _cache().remove('trips');
   return { success: true, id };
 }
 
@@ -61,6 +72,7 @@ function updateTrip(trip) {
       sheet.getRange(i + 1, 2, 1, 6).setValues([[
         trip.name, trip.destination, trip.startDate, trip.endDate, trip.status, trip.notes || '',
       ]]);
+      _cache().remove('trips');
       return { success: true };
     }
   }
@@ -71,7 +83,11 @@ function deleteTrip(id) {
   const sheet = getSheet();
   const data  = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === id) { sheet.deleteRow(i + 1); return { success: true }; }
+    if (data[i][0] === id) {
+      sheet.deleteRow(i + 1);
+      _cache().remove('trips');
+      return { success: true };
+    }
   }
   return { success: false, error: 'Trip not found' };
 }
@@ -92,10 +108,14 @@ function getSchedSheet() {
 }
 
 function getSchedulesByTripId(tripId) {
+  const cacheKey = 'scheds-' + tripId;
+  const cached   = _cache().get(cacheKey);
+  if (cached) return JSON.parse(cached);
+
   const sheet = getSchedSheet();
   const data  = sheet.getDataRange().getValues();
   if (data.length <= 1) return [];
-  return data.slice(1)
+  const list = data.slice(1)
     .filter(row => row[1] === tripId)
     .map(row => ({
       id:        row[0],
@@ -108,6 +128,8 @@ function getSchedulesByTripId(tripId) {
       note:      row[7],
       status:    row[8],
     }));
+  _cache().put(cacheKey, JSON.stringify(list), CACHE_TTL);
+  return list;
 }
 
 function addSchedule(schedule) {
@@ -118,6 +140,7 @@ function addSchedule(schedule) {
     schedule.transport || '', schedule.cost || '', schedule.map || '',
     schedule.note || '', schedule.status,
   ]);
+  _cache().remove('scheds-' + schedule.tripId);
   return { success: true, id };
 }
 
@@ -131,6 +154,7 @@ function updateSchedule(schedule) {
         schedule.transport || '', schedule.cost || '', schedule.map || '',
         schedule.note || '', schedule.status,
       ]]);
+      _cache().remove('scheds-' + schedule.tripId);
       return { success: true };
     }
   }
@@ -138,10 +162,15 @@ function updateSchedule(schedule) {
 }
 
 function deleteSchedule(id) {
-  const sheet = getSchedSheet();
-  const data  = sheet.getDataRange().getValues();
+  const sheet  = getSchedSheet();
+  const data   = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === id) { sheet.deleteRow(i + 1); return { success: true }; }
+    if (data[i][0] === id) {
+      const tripId = data[i][1];
+      sheet.deleteRow(i + 1);
+      _cache().remove('scheds-' + tripId);
+      return { success: true };
+    }
   }
   return { success: false, error: 'Schedule not found' };
 }
@@ -160,7 +189,6 @@ function getUsersSheet() {
     sheet.getRange(1, 1, 1, USERS_HEADERS.length)
       .setFontWeight('bold').setBackground('#b45309').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
-    // Seed default admin — password: admin123
     const salt = Utilities.getUuid();
     sheet.appendRow(['USER-1', 'admin', hashPassword('admin123', salt), salt, 'admin', new Date(), new Date(), '', 'system', true, '', 'local', 'en']);
   }

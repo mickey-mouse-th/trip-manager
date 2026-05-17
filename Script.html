@@ -521,7 +521,9 @@
     $.each(pairs, function (_, p) {
       $sel.find('option[value="' + p.val + '"]').text(t(p.key));
     });
-    $sel.val(current).trigger('change.select2');
+    // Use 'change' (not 'change.select2') so Select2 re-reads the DOM option
+    // text instead of serving its stale internal data cache.
+    $sel.val(current).trigger('change');
   }
 
   // ── DOM shortcuts ────────────────────────────────────────
@@ -839,48 +841,56 @@
       notes:       $('#field-notes').val().trim()
     };
 
-    setSaving(true);
-
     if (editingId) {
+      // ── Optimistic edit ──
+      var idx      = indexById(editingId);
+      var snapshot = idx !== -1 ? $.extend({}, allTrips[idx]) : null;
+      if (idx !== -1) allTrips[idx] = trip;
+      closeSheet(); renderTrips(); updateStats();
+
       google.script.run
         .withSuccessHandler(function (res) {
-          setSaving(false);
-          if (!res.success) { showToast(res.error || 'Update failed', 'error'); return; }
-          var idx = indexById(editingId);
-          if (idx !== -1) allTrips[idx] = trip;
-          closeSheet();
-          renderTrips();
-          updateStats();
-          showToast('Trip updated', 'success');
+          if (!res.success) {
+            if (idx !== -1 && snapshot) allTrips[idx] = snapshot;
+            renderTrips(); updateStats();
+            showToast(res.error || 'Update failed', 'error');
+          } else { showToast('Trip updated', 'success'); }
         })
-        .withFailureHandler(onSaveError)
+        .withFailureHandler(function (err) {
+          if (idx !== -1 && snapshot) allTrips[idx] = snapshot;
+          renderTrips(); updateStats();
+          showToast('Error: ' + err.message, 'error');
+        })
         .updateTrip(trip);
+
     } else {
+      // ── Optimistic add ──
+      var tempId = '__tmp-' + Date.now();
+      trip.id = tempId;
+      allTrips.push(trip);
+      closeSheet(); renderTrips(); updateStats();
+
       google.script.run
         .withSuccessHandler(function (res) {
-          setSaving(false);
-          if (!res.success) { showToast(res.error || 'Save failed', 'error'); return; }
-          trip.id = res.id;
-          allTrips.push(trip);
-          closeSheet();
-          renderTrips();
-          updateStats();
-          showToast('Trip added', 'success');
+          var ti = indexById(tempId);
+          if (!res.success) {
+            if (ti !== -1) allTrips.splice(ti, 1);
+            renderTrips(); updateStats();
+            showToast(res.error || 'Save failed', 'error');
+          } else {
+            if (ti !== -1) allTrips[ti].id = res.id;
+            renderTrips();
+            showToast('Trip added', 'success');
+          }
         })
-        .withFailureHandler(onSaveError)
+        .withFailureHandler(function (err) {
+          var ti = indexById(tempId);
+          if (ti !== -1) allTrips.splice(ti, 1);
+          renderTrips(); updateStats();
+          showToast('Error: ' + err.message, 'error');
+        })
         .addTrip(trip);
     }
-  }
-
-  function onSaveError(err) {
-    setSaving(false);
-    showToast('Error: ' + err.message, 'error');
-  }
-
-  function setSaving(on) {
-    $btnSave.prop('disabled', on);
-    $btnSaveLabel.toggleClass('hidden', on);
-    $btnSpinner.toggleClass('hidden', !on);
   }
 
   // ── Validation ────────────────────────────────────────────
@@ -924,18 +934,25 @@
 
   function confirmDelete() {
     if (!pendingDeleteId) return;
-    var id = pendingDeleteId;
+    var id      = pendingDeleteId;
+    var removed = $.grep(allTrips, function (t) { return t.id === id; });
     closeConfirm();
+
+    // ── Optimistic delete ──
+    allTrips = $.grep(allTrips, function (t) { return t.id !== id; });
+    renderTrips(); updateStats();
 
     google.script.run
       .withSuccessHandler(function (res) {
-        if (!res.success) { showToast(res.error || 'Delete failed', 'error'); return; }
-        allTrips = $.grep(allTrips, function (t) { return t.id !== id; });
-        renderTrips();
-        updateStats();
-        showToast('Trip deleted', 'success');
+        if (!res.success) {
+          allTrips = allTrips.concat(removed);
+          renderTrips(); updateStats();
+          showToast(res.error || 'Delete failed', 'error');
+        } else { showToast('Trip deleted', 'success'); }
       })
       .withFailureHandler(function (err) {
+        allTrips = allTrips.concat(removed);
+        renderTrips(); updateStats();
         showToast('Error: ' + err.message, 'error');
       })
       .deleteTrip(id);
@@ -957,6 +974,14 @@
     var result = -1;
     $.each(allTrips, function (i, t) {
       if (t.id === id) { result = i; return false; }
+    });
+    return result;
+  }
+
+  function indexSchedById(id) {
+    var result = -1;
+    $.each(allSchedules, function (i, s) {
+      if (s.id === id) { result = i; return false; }
     });
     return result;
   }
@@ -1119,42 +1144,59 @@
       status:    $('#sf-status').val()
     };
 
-    $('#sf-save').prop('disabled', true);
-    $('#sf-save-label').addClass('hidden');
-    $('#sf-spinner').removeClass('hidden');
-
-    var done = function () {
-      $('#sf-save').prop('disabled', false);
-      $('#sf-save-label').removeClass('hidden');
-      $('#sf-spinner').addClass('hidden');
-    };
-
     if (editingSchedId) {
+      // ── Optimistic edit ──
+      var idx      = indexSchedById(editingSchedId);
+      var snapshot = idx !== -1 ? $.extend({}, allSchedules[idx]) : null;
+      if (idx !== -1) allSchedules[idx] = sched;
+      allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+      closeSchedForm(); renderSchedules();
+
       google.script.run
         .withSuccessHandler(function (res) {
-          done();
-          if (!res.success) { showToast(res.error || 'Update failed', 'error'); return; }
-          $.each(allSchedules, function (i, s) { if (s.id === editingSchedId) { allSchedules[i] = sched; return false; } });
-          allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
-          closeSchedForm();
-          renderSchedules();
-          showToast('Schedule updated', 'success');
+          if (!res.success) {
+            if (idx !== -1 && snapshot) allSchedules[idx] = snapshot;
+            allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+            renderSchedules();
+            showToast(res.error || 'Update failed', 'error');
+          } else { showToast('Schedule updated', 'success'); }
         })
-        .withFailureHandler(function (err) { done(); showToast('Error: ' + err.message, 'error'); })
+        .withFailureHandler(function (err) {
+          if (idx !== -1 && snapshot) allSchedules[idx] = snapshot;
+          allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+          renderSchedules();
+          showToast('Error: ' + err.message, 'error');
+        })
         .updateSchedule(sched);
+
     } else {
+      // ── Optimistic add ──
+      var tempId = '__stmp-' + Date.now();
+      sched.id = tempId;
+      allSchedules.push(sched);
+      allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+      closeSchedForm(); renderSchedules();
+
       google.script.run
         .withSuccessHandler(function (res) {
-          done();
-          if (!res.success) { showToast(res.error || 'Save failed', 'error'); return; }
-          sched.id = res.id;
-          allSchedules.push(sched);
-          allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
-          closeSchedForm();
-          renderSchedules();
-          showToast('Schedule added', 'success');
+          var ti = indexSchedById(tempId);
+          if (!res.success) {
+            if (ti !== -1) allSchedules.splice(ti, 1);
+            renderSchedules();
+            showToast(res.error || 'Save failed', 'error');
+          } else {
+            if (ti !== -1) allSchedules[ti].id = res.id;
+            allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+            renderSchedules();
+            showToast('Schedule added', 'success');
+          }
         })
-        .withFailureHandler(function (err) { done(); showToast('Error: ' + err.message, 'error'); })
+        .withFailureHandler(function (err) {
+          var ti = indexSchedById(tempId);
+          if (ti !== -1) allSchedules.splice(ti, 1);
+          renderSchedules();
+          showToast('Error: ' + err.message, 'error');
+        })
         .addSchedule(sched);
     }
   }
@@ -1177,16 +1219,29 @@
 
   function confirmSchedDel() {
     if (!pendingSchedDelId) return;
-    var id = pendingSchedDelId;
+    var id      = pendingSchedDelId;
+    var removed = $.grep(allSchedules, function (s) { return s.id === id; });
     closeSchedDel();
+
+    // ── Optimistic delete ──
+    allSchedules = $.grep(allSchedules, function (s) { return s.id !== id; });
+    renderSchedules();
+
     google.script.run
       .withSuccessHandler(function (res) {
-        if (!res.success) { showToast(res.error || 'Delete failed', 'error'); return; }
-        allSchedules = $.grep(allSchedules, function (s) { return s.id !== id; });
-        renderSchedules();
-        showToast('Schedule deleted', 'success');
+        if (!res.success) {
+          allSchedules = allSchedules.concat(removed);
+          allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+          renderSchedules();
+          showToast(res.error || 'Delete failed', 'error');
+        } else { showToast('Schedule deleted', 'success'); }
       })
-      .withFailureHandler(function (err) { showToast('Error: ' + err.message, 'error'); })
+      .withFailureHandler(function (err) {
+        allSchedules = allSchedules.concat(removed);
+        allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+        renderSchedules();
+        showToast('Error: ' + err.message, 'error');
+      })
       .deleteSchedule(id);
   }
 
