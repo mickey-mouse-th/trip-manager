@@ -509,7 +509,9 @@
       { val:'Cancelled', key:'statusCancelled' },
     ]);
 
-    renderTrips();
+    // Only re-render cards if trips are already loaded — avoid showing empty
+    // state during the initial boot before the first getTrips() call returns.
+    if (allTrips.length) renderTrips();
   }
 
   function updateSelectOptions(selector, pairs) {
@@ -648,6 +650,7 @@
 
   // ── Data ─────────────────────────────────────────────────
   function loadTrips() {
+    $emptyState.addClass('hidden');
     $loadingState.removeClass('hidden');
     google.script.run
       .withSuccessHandler(function (trips) {
@@ -1628,12 +1631,16 @@
     if (saved) {
       try {
         currentUser = JSON.parse(saved);
-        $('#login-screen').addClass('hidden');
         applyRolePermissions();
         updateHeaderUser();
         applyTranslations();
         init();
-      } catch (e) { localStorage.removeItem('tm_user'); }
+      } catch (e) {
+        localStorage.removeItem('tm_user');
+        $('#login-screen').removeClass('hidden');
+      }
+    } else {
+      $('#login-screen').removeClass('hidden');
     }
     $('.stat-pill[data-filter=""]').attr('data-selected', '');
   });
