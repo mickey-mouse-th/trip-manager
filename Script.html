@@ -938,6 +938,10 @@
   }
 
   function renderSchedules() {
+    // Always sort by dateTime before rendering so the list is correct on
+    // initial load (server may return unsorted rows) and after any edit.
+    allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+
     var $list = $('#schedule-list').empty();
     if (allSchedules.length === 0) {
       $('#schedule-empty').removeClass('hidden');
