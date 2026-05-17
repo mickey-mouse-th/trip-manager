@@ -403,6 +403,9 @@
   .confirm-msg { font-size: 15px; color: var(--c-text-muted); line-height: 1.6; }
   .confirm-msg strong { color: var(--c-text); }
 
+  /* Hide native selects before Select2 initialises — prevents flash */
+  .filter-select2, .form-select2, .sched-status-s2 { display: none; }
+
   /* ── Select2 overrides ───────────────────────────────── */
   .filter-wrap .select2-container { width: auto !important; min-width: 140px; }
   .filter-wrap .select2-container--default .select2-selection--single {
