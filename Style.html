@@ -15,11 +15,13 @@
 
     --s-planning:   #eff6ff; --s-planning-t:   #2563eb;
     --s-active:     #f0fdf4; --s-active-t:     #16a34a;
+    --s-done:       #faf5ff; --s-done-t:       #7c3aed;
     --s-completed:  #faf5ff; --s-completed-t:  #7c3aed;
     --s-cancelled:  #fff1f2; --s-cancelled-t:  #e11d48;
 
     --grad-planning:   linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
     --grad-active:     linear-gradient(135deg, #15803d 0%, #34d399 100%);
+    --grad-done:       linear-gradient(135deg, #6d28d9 0%, #c084fc 100%);
     --grad-completed:  linear-gradient(135deg, #6d28d9 0%, #c084fc 100%);
     --grad-cancelled:  linear-gradient(135deg, #475569 0%, #94a3b8 100%);
 
@@ -131,6 +133,8 @@
   .stat-pill.active-trip .stat-num       { color: var(--s-active-t); }
   .stat-pill.active-trip[data-selected]  { border-color: var(--s-active-t); background: var(--s-active); }
 
+  .stat-pill.done .stat-num              { color: var(--s-done-t); }
+  .stat-pill.done[data-selected]         { border-color: var(--s-done-t); background: var(--s-done); }
   .stat-pill.completed .stat-num         { color: var(--s-completed-t); }
   .stat-pill.completed[data-selected]    { border-color: var(--s-completed-t); background: var(--s-completed); }
 
@@ -207,6 +211,7 @@
   }
   .status-planning  .trip-card-banner { background: var(--grad-planning); }
   .status-active    .trip-card-banner { background: var(--grad-active); }
+  .status-done      .trip-card-banner { background: var(--grad-done); }
   .status-completed .trip-card-banner { background: var(--grad-completed); }
   .status-cancelled .trip-card-banner { background: var(--grad-cancelled); }
 
@@ -268,6 +273,7 @@
   }
   .badge-planning  { background: rgba(255,255,255,.25); color: #fff; }
   .badge-active    { background: rgba(255,255,255,.25); color: #fff; }
+  .badge-done      { background: rgba(255,255,255,.25); color: #fff; }
   .badge-completed { background: rgba(255,255,255,.25); color: #fff; }
   .badge-cancelled { background: rgba(255,255,255,.25); color: #fff; }
 
@@ -382,6 +388,9 @@
   .sheet-footer .btn { flex: 1; }
 
   /* ── Form ────────────────────────────────────────────── */
+  .sheet-body form {
+    display: flex; flex-direction: column; gap: 20px;
+  }
   .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-group { display: flex; flex-direction: column; gap: 8px; }
   .form-label { font-size: 13px; font-weight: 600; color: var(--c-text); }
@@ -734,6 +743,26 @@
   /* clickable avatar */
   .header-avatar { cursor: pointer; transition: opacity var(--ease); }
   .header-avatar:hover { opacity: .8; }
+
+  /* ── Sheet header actions group ─────────────────────────── */
+  .sheet-header-actions {
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  }
+
+  /* Cancel / Restore icon button in trip sheet header */
+  .btn-sheet-status {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--s-cancelled); color: var(--s-cancelled-t);
+    transition: background var(--ease), color var(--ease), transform var(--ease);
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-sheet-status:hover   { background: #fecdd3; transform: scale(1.08); }
+  .btn-sheet-status:active  { transform: scale(.92); }
+  .btn-sheet-status.restore { background: var(--s-active); color: var(--s-active-t); }
+  .btn-sheet-status.restore:hover { background: #bbf7d0; }
 
   /* ── Animations ──────────────────────────────────────── */
   @keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }

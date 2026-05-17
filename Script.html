@@ -252,6 +252,8 @@
   var pendingDeleteId = null;
   var activeFilter    = '';
 
+  var cancelledState = false;   // tracks manual Cancel toggle in edit form
+
   // Schedule state
   var currentTrip       = null;
   var allSchedules      = [];
@@ -310,6 +312,7 @@
       labelCurrentPw:'Current Password', phCurrentPw:'Enter current password',
       labelNewPw:'New Password',
       labelLanguage:'Language',
+      cancelTrip:'Cancel Trip', restoreTrip:'Restore Trip',
     },
     th: {
       allTrips:'ทั้งหมด', planning:'วางแผน', active:'กำลังเดินทาง', done:'เสร็จแล้ว', cancelled:'ยกเลิก',
@@ -349,6 +352,7 @@
       labelCurrentPw:'รหัสผ่านปัจจุบัน', phCurrentPw:'ใส่รหัสผ่านปัจจุบัน',
       labelNewPw:'รหัสผ่านใหม่',
       labelLanguage:'ภาษา',
+      cancelTrip:'ยกเลิกทริป', restoreTrip:'กู้คืนทริป',
     },
     lo: {
       allTrips:'ທັງໝົດ', planning:'ວາງແຜນ', active:'ກຳລັງເດີນທາງ', done:'ສຳເລັດ', cancelled:'ຍົກເລີກ',
@@ -388,6 +392,7 @@
       labelCurrentPw:'ລະຫັດຜ່ານປັດຈຸບັນ', phCurrentPw:'ໃສ່ລະຫັດຜ່ານປັດຈຸບັນ',
       labelNewPw:'ລະຫັດຜ່ານໃໝ່',
       labelLanguage:'ພາສາ',
+      cancelTrip:'ຍົກເລີກການເດີນທາງ', restoreTrip:'ກູ້ຄືນການເດີນທາງ',
     },
     ja: {
       allTrips:'すべて', planning:'計画中', active:'旅行中', done:'完了', cancelled:'キャンセル',
@@ -427,6 +432,7 @@
       labelCurrentPw:'現在のパスワード', phCurrentPw:'現在のパスワードを入力',
       labelNewPw:'新しいパスワード',
       labelLanguage:'言語',
+      cancelTrip:'旅行をキャンセル', restoreTrip:'旅行を再開',
     },
     zh: {
       allTrips:'全部', planning:'计划中', active:'进行中', done:'已完成', cancelled:'已取消',
@@ -466,6 +472,7 @@
       labelCurrentPw:'当前密码', phCurrentPw:'输入当前密码',
       labelNewPw:'新密码',
       labelLanguage:'语言',
+      cancelTrip:'取消行程', restoreTrip:'恢复行程',
     },
   };
 
@@ -493,13 +500,7 @@
       { val:'',          key:'statusAll' },
       { val:'Planning',  key:'statusPlanning' },
       { val:'Active',    key:'statusActive' },
-      { val:'Completed', key:'statusCompleted' },
-      { val:'Cancelled', key:'statusCancelled' },
-    ]);
-    updateSelectOptions('#field-status', [
-      { val:'Planning',  key:'statusPlanning' },
-      { val:'Active',    key:'statusActive' },
-      { val:'Completed', key:'statusCompleted' },
+      { val:'Done',      key:'statusDone' },
       { val:'Cancelled', key:'statusCancelled' },
     ]);
     updateSelectOptions('#sf-status', [
@@ -524,6 +525,24 @@
     // Use 'change' (not 'change.select2') so Select2 re-reads the DOM option
     // text instead of serving its stale internal data cache.
     $sel.val(current).trigger('change');
+  }
+
+  // ── Status computation ────────────────────────────────────
+  // Planning/Active/Done are derived from dates; only Cancelled is manual.
+  function computeTripStatus(trip) {
+    if (trip.status === 'Cancelled') return 'Cancelled';
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (!trip.startDate) return 'Planning';
+    var start = new Date(trip.startDate);
+    start.setHours(0, 0, 0, 0);
+    if (today < start) return 'Planning';
+    if (trip.endDate) {
+      var end = new Date(trip.endDate);
+      end.setHours(0, 0, 0, 0);
+      if (today > end) return 'Done';
+    }
+    return 'Active';
   }
 
   // ── DOM shortcuts ────────────────────────────────────────
@@ -557,13 +576,6 @@
       renderTrips();
     });
 
-    // Status select inside the trip form sheet
-    $('#field-status').select2({
-      minimumResultsForSearch: Infinity,
-      dropdownParent: $('#trip-sheet'),
-      width: '100%'
-    });
-
     // Status select inside the schedule form sheet
     $('#sf-status').select2({
       minimumResultsForSearch: Infinity,
@@ -574,10 +586,6 @@
 
   function setFilterSelect(val) {
     $('#filter-status').val(val).trigger('change.select2');
-  }
-
-  function setStatusField(val) {
-    $('#field-status').val(val).trigger('change');
   }
 
   // ── Events ───────────────────────────────────────────────
@@ -591,6 +599,12 @@
 
     // Save
     $('#btn-save').on('click', handleSave);
+
+    // Cancel/Restore trip toggle
+    $('#btn-trip-cancel-toggle').on('click', function () {
+      cancelledState = !cancelledState;
+      updateCancelButton();
+    });
 
     // Search
     $searchInput.on('input', function () {
@@ -656,7 +670,10 @@
     $loadingState.removeClass('hidden');
     google.script.run
       .withSuccessHandler(function (trips) {
-        allTrips = trips;
+        // Normalize — recompute status from dates (Cancelled preserved as-is)
+        allTrips = $.map(trips, function (t) {
+          return $.extend({}, t, { status: computeTripStatus(t) });
+        });
         $loadingState.addClass('hidden');
         renderTrips();
         updateStats();
@@ -711,7 +728,7 @@
     var $card = $([
       '<div class="trip-card status-' + statusLower + '" data-id="' + esc(trip.id) + '">',
         '<div class="trip-card-banner">',
-          '<span class="badge badge-' + statusLower + '">' + esc(trip.status) + '</span>',
+          '<span class="badge badge-' + statusLower + '">' + t('status' + trip.status) + '</span>',
         '</div>',
         '<div class="trip-card-body">',
           '<div class="trip-card-name">' + esc(trip.name) + '</div>',
@@ -771,7 +788,7 @@
     $('#stat-total').text(allTrips.length);
     $('#stat-planning').text(countByStatus('Planning'));
     $('#stat-active').text(countByStatus('Active'));
-    $('#stat-completed').text(countByStatus('Completed'));
+    $('#stat-completed').text(countByStatus('Done'));
     $('#stat-cancelled').text(countByStatus('Cancelled'));
   }
 
@@ -781,18 +798,20 @@
 
   // ── Sheet open / close ────────────────────────────────────
   function openAddSheet() {
-    editingId = null;
+    editingId      = null;
+    cancelledState = false;
     $modalTitle.text(t('addTripTitle'));
     $btnSaveLabel.text(t('saveTrip'));
     $('#trip-form').trigger('reset');
     clearErrors();
-    setStatusField('Planning');
+    $('#btn-trip-cancel-toggle').addClass('hidden');
     openSheet('#trip-sheet', '#sheet-backdrop');
     setTimeout(function () { $('#field-name').focus(); }, 350);
   }
 
   function openEditSheet(trip) {
-    editingId = trip.id;
+    editingId      = trip.id;
+    cancelledState = (trip.status === 'Cancelled');
     $modalTitle.text(t('editTripTitle'));
     $btnSaveLabel.text(t('updateTrip'));
     clearErrors();
@@ -802,10 +821,25 @@
     $('#field-destination').val(trip.destination);
     $('#field-start').val(trip.startDate);
     $('#field-end').val(trip.endDate);
-    setStatusField(trip.status);
     $('#field-notes').val(trip.notes || '');
 
+    $('#btn-trip-cancel-toggle').removeClass('hidden');
+    updateCancelButton();
+
     openSheet('#trip-sheet', '#sheet-backdrop');
+  }
+
+  function updateCancelButton() {
+    var $btn = $('#btn-trip-cancel-toggle');
+    if (cancelledState) {
+      $btn.addClass('restore').attr('aria-label', t('restoreTrip'));
+      $btn.find('.icon-cancel-trip').addClass('hidden');
+      $btn.find('.icon-restore-trip').removeClass('hidden');
+    } else {
+      $btn.removeClass('restore').attr('aria-label', t('cancelTrip'));
+      $btn.find('.icon-cancel-trip').removeClass('hidden');
+      $btn.find('.icon-restore-trip').addClass('hidden');
+    }
   }
 
   function openSheet(sheetSel, backdropSel) {
@@ -831,13 +865,15 @@
   function handleSave() {
     if (!validateForm()) return;
 
+    var startDate = $('#field-start').val();
+    var endDate   = $('#field-end').val();
     var trip = {
       id:          $('#field-id').val(),
       name:        $('#field-name').val().trim(),
       destination: $('#field-destination').val().trim(),
-      startDate:   $('#field-start').val(),
-      endDate:     $('#field-end').val(),
-      status:      $('#field-status').val(),
+      startDate:   startDate,
+      endDate:     endDate,
+      status:      cancelledState ? 'Cancelled' : computeTripStatus({ startDate: startDate, endDate: endDate, status: '' }),
       notes:       $('#field-notes').val().trim()
     };
 
