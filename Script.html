@@ -879,6 +879,36 @@
     }
     $('#schedule-empty').addClass('hidden');
     $.each(allSchedules, function (_, s) { $list.append(buildSchedItem(s)); });
+    markCurrentSchedule();
+  }
+
+  // Marks the schedule item that is "now":
+  //   - The last item whose dateTime ≤ current time (you are here)
+  //   - If all items are in the future, the first item (coming up next)
+  // Items before it are faded (.sched-item--past).
+  // The "now" dot gets a pulsing ring (.sched-dot--now).
+  function markCurrentSchedule() {
+    if (!allSchedules.length) return;
+    var now = new Date();
+
+    // Find the last schedule that has already started
+    var currentIdx = -1;
+    $.each(allSchedules, function (i, s) {
+      if (s.dateTime && new Date(s.dateTime) <= now) currentIdx = i;
+    });
+    // Nothing started yet — treat the first upcoming as "now"
+    if (currentIdx === -1) currentIdx = 0;
+
+    $.each(allSchedules, function (i, s) {
+      var $item = $('#schedule-list .sched-item[data-id="' + s.id + '"]');
+      $item.find('.sched-dot').removeClass('sched-dot--now');
+      $item.removeClass('sched-item--past');
+      if (i < currentIdx) {
+        $item.addClass('sched-item--past');
+      } else if (i === currentIdx) {
+        $item.find('.sched-dot').addClass('sched-dot--now');
+      }
+    });
   }
 
   function buildSchedItem(s) {

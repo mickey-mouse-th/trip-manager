@@ -921,6 +921,22 @@
   .sched-act-btn:hover     { background: var(--c-bg); color: var(--c-text); }
   .sched-act-btn.del:hover { background: var(--s-cancelled); color: var(--c-danger); }
 
+  /* ── Schedule time-aware states ─────────────────────── */
+  /* Pulsing ring on the dot whose schedule is "now" (uses the dot's own currentColor) */
+  @keyframes sched-now-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 22%, transparent); }
+    55%       { box-shadow: 0 0 0 9px color-mix(in srgb, currentColor 0%,  transparent); }
+  }
+  .sched-dot--now {
+    animation: sched-now-pulse 1.7s ease-in-out infinite;
+  }
+
+  /* Past schedule items — fade time column, connector line and card */
+  .sched-item--past .sched-time-col,
+  .sched-item--past .sched-card     { opacity: .38; transition: opacity var(--ease); }
+  .sched-item--past .sched-dot,
+  .sched-item--past .sched-line     { opacity: .25; transition: opacity var(--ease); }
+
   /* ── Schedule empty state ────────────────────────────── */
   .sched-empty {
     display: flex; flex-direction: column;
