@@ -1085,84 +1085,226 @@
       .deleteSchedule(id);
   }
 
-  // ── Export PDF ────────────────────────────────────────────
+  // ── Export / Print ────────────────────────────────────────
+  // Opens a styled print window — browser handles all scripts natively
+  // (Thai, Lao, Japanese, Chinese). User can print or Save as PDF.
   function exportTripPDF() {
     if (!currentTrip) return;
     var trip   = currentTrip;
-    var scheds = allSchedules;
+    var scheds = allSchedules.slice().sort(function (a, b) {
+      return a.dateTime < b.dateTime ? -1 : 1;
+    });
 
-    var doc = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    // Group by calendar day
+    var byDay    = {};
+    var dayOrder = [];
+    $.each(scheds, function (_, s) {
+      var day = s.dateTime ? s.dateTime.split('T')[0] : '__nodate__';
+      if (!byDay[day]) { byDay[day] = []; dayOrder.push(day); }
+      byDay[day].push(s);
+    });
 
-    // Title
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.text(trip.name, 14, 22);
+    // Summary stats
+    var totalCost = 0;
+    $.each(scheds, function (_, s) { totalCost += Number(s.cost) || 0; });
+    var tripDays = '';
+    if (trip.startDate && trip.endDate) {
+      var d = Math.round((new Date(trip.endDate) - new Date(trip.startDate)) / 86400000) + 1;
+      if (d > 0) tripDays = d;
+    }
 
-    // Sub-info
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(95, 99, 104);
-    doc.text(trip.destination, 14, 30);
-    doc.text(formatDateRange(trip.startDate, trip.endDate), 14, 36);
+    var html = buildPrintHTML(trip, scheds, byDay, dayOrder, totalCost, tripDays);
+    var win  = window.open('', '_blank', 'width=860,height=1100,menubar=no,toolbar=no');
+    if (!win) { showToast('Please allow pop-ups to export the trip plan.', 'warn'); return; }
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+  }
 
-    // Status badge text
-    doc.setFontSize(9);
-    doc.text('Status: ' + trip.status, 14, 42);
-    doc.setTextColor(0, 0, 0);
+  function buildPrintHTML(trip, scheds, byDay, dayOrder, totalCost, tripDays) {
+    var MONTHS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var WEEKDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-    // Divider
-    doc.setDrawColor(224, 224, 224);
-    doc.line(14, 46, 196, 46);
+    function fmtDate(d) {
+      if (!d) return '';
+      var p = d.split('-');
+      return MONTHS[parseInt(p[1], 10) - 1] + ' ' + parseInt(p[2], 10) + ', ' + p[0];
+    }
+    function fmtDayHeader(d) {
+      if (!d || d === '__nodate__') return 'No Date';
+      var p   = d.split('-');
+      var obj = new Date(d + 'T00:00:00');
+      return WEEKDAYS[obj.getDay()] + ', ' + MONTHS[parseInt(p[1], 10) - 1] + ' ' + parseInt(p[2], 10) + ', ' + p[0];
+    }
+    function fmtTime(dt) {
+      if (!dt || dt.indexOf('T') === -1) return '';
+      return dt.split('T')[1].substring(0, 5);
+    }
 
+    // Status palette
+    var S_COLORS = {
+      Planning:  { bg:'#eff6ff', border:'#2563eb', text:'#1d4ed8', dot:'#3b82f6' },
+      Active:    { bg:'#f0fdf4', border:'#16a34a', text:'#15803d', dot:'#22c55e' },
+      Done:      { bg:'#faf5ff', border:'#7c3aed', text:'#6d28d9', dot:'#8b5cf6' },
+      Cancelled: { bg:'#fff1f2', border:'#e11d48', text:'#be123c', dot:'#f43f5e' },
+      Confirmed: { bg:'#f0fdf4', border:'#16a34a', text:'#15803d', dot:'#22c55e' },
+    };
+    var tripSC  = S_COLORS[trip.status]  || S_COLORS.Planning;
+
+    // ── Schedule timeline HTML ────────────────────────────────
+    var schedHtml = '';
     if (scheds.length === 0) {
-      doc.setFontSize(11);
-      doc.setTextColor(95, 99, 104);
-      doc.text('No schedules yet.', 14, 58);
+      schedHtml = '<p style="color:#94a3b8;text-align:center;padding:40px 0;font-size:13px;">No schedules yet</p>';
     } else {
-      var rows = $.map(scheds, function (s) {
-        var dt = formatDateTime(s.dateTime);
-        return [[
-          dt.date + (dt.time ? '\n' + dt.time : ''),
-          s.detail || '',
-          s.transport || '',
-          s.cost ? '฿' + Number(s.cost).toLocaleString() : '',
-          s.status || '',
-          s.note || ''
-        ]];
-      });
+      $.each(dayOrder, function (_, day) {
+        var items    = byDay[day];
+        var itemsStr = '';
+        $.each(items, function (i, s) {
+          var sc      = S_COLORS[s.status] || S_COLORS.Planning;
+          var isLast  = i === items.length - 1;
+          var costStr = s.cost ? '฿' + Number(s.cost).toLocaleString() : '';
+          var meta    = [];
+          if (s.transport) meta.push('<span style="margin-right:10px;">🚌 ' + esc(s.transport) + '</span>');
+          if (costStr)     meta.push('<span style="margin-right:10px;">💰 ' + costStr + '</span>');
+          if (s.note)      meta.push('<span>📝 ' + esc(s.note) + '</span>');
+          var mapLink = s.map
+            ? '<a href="' + esc(s.map) + '" style="font-size:11px;color:#2563eb;text-decoration:none;">📍 View on Map</a>'
+            : '';
 
-      doc.autoTable({
-        startY: 50,
-        head: [['Date & Time', 'Detail', 'Transport', 'Cost', 'Status', 'Note']],
-        body: rows,
-        styles: { fontSize: 8.5, cellPadding: 3, valign: 'top', overflow: 'linebreak' },
-        headStyles: { fillColor: [26, 115, 232], textColor: 255, fontStyle: 'bold', fontSize: 9 },
-        alternateRowStyles: { fillColor: [245, 247, 250] },
-        columnStyles: {
-          0: { cellWidth: 24 },
-          1: { cellWidth: 55 },
-          2: { cellWidth: 30 },
-          3: { cellWidth: 20 },
-          4: { cellWidth: 24 },
-          5: { cellWidth: 'auto' }
-        },
-        didDrawPage: function (data) {
-          // Footer with page number
-          var pageCount = doc.internal.getNumberOfPages();
-          doc.setFontSize(8);
-          doc.setTextColor(150);
-          doc.text(
-            'Page ' + data.pageNumber + ' of ' + pageCount,
-            data.settings.margin.left,
-            doc.internal.pageSize.height - 8
-          );
-          doc.text('Trip Manager', 196, doc.internal.pageSize.height - 8, { align: 'right' });
-        }
+          itemsStr += [
+            '<div style="display:flex;gap:0;' + (isLast ? '' : 'padding-bottom:4px;') + '">',
+              // Time
+              '<div style="width:52px;flex-shrink:0;padding-top:3px;padding-right:10px;text-align:right;">',
+                '<span style="font-size:13px;font-weight:700;color:#334155;">' + fmtTime(s.dateTime) + '</span>',
+              '</div>',
+              // Axis
+              '<div style="width:20px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;">',
+                '<div style="width:10px;height:10px;border-radius:50%;background:' + sc.dot + ';border:2px solid white;outline:2px solid ' + sc.dot + ';flex-shrink:0;margin-top:4px;"></div>',
+                isLast ? '' : '<div style="flex:1;width:2px;background:#e2e8f0;min-height:28px;margin-top:4px;"></div>',
+              '</div>',
+              // Card
+              '<div style="flex:1;padding:0 0 20px 10px;">',
+                '<div style="font-size:13.5px;font-weight:600;color:#0f172a;margin-bottom:4px;">' + esc(s.detail) + '</div>',
+                meta.length ? '<div style="font-size:11.5px;color:#64748b;margin-bottom:6px;">' + meta.join('') + '</div>' : '',
+                mapLink ? '<div style="margin-bottom:6px;">' + mapLink + '</div>' : '',
+                '<span style="font-size:10.5px;padding:2px 9px;border-radius:99px;background:' + sc.bg + ';color:' + sc.text + ';font-weight:600;border:1px solid ' + sc.border + '20;">' + esc(getLabel('status' + s.status)) + '</span>',
+              '</div>',
+            '</div>',
+          ].join('');
+        });
+
+        schedHtml += [
+          '<div style="margin-bottom:16px;break-inside:avoid;">',
+            '<div style="font-size:10.5px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;',
+              'padding-bottom:7px;margin-bottom:10px;border-bottom:1px solid #f1f5f9;">' + esc(fmtDayHeader(day)) + '</div>',
+            itemsStr,
+          '</div>',
+        ].join('');
       });
     }
 
-    var filename = trip.name.replace(/[^a-zA-Z0-9ก-๙\s]/g, '').replace(/\s+/g, '_') + '_plan.pdf';
-    doc.save(filename);
+    // ── Stats bar ─────────────────────────────────────────────
+    var statsItems = [];
+    if (tripDays) statsItems.push({ n: tripDays, lbl: 'Days' });
+    statsItems.push({ n: scheds.length, lbl: 'Events' });
+    if (totalCost) statsItems.push({ n: '฿' + totalCost.toLocaleString(), lbl: 'Total' });
+    var statsHtml = statsItems.map(function (item, idx) {
+      var border = idx > 0 ? 'border-left:1px solid rgba(255,255,255,.25);' : '';
+      return '<div style="text-align:center;padding:0 20px;' + border + '">'
+        + '<div style="font-size:22px;font-weight:700;">' + item.n + '</div>'
+        + '<div style="font-size:10px;opacity:.75;font-weight:500;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">' + item.lbl + '</div>'
+        + '</div>';
+    }).join('');
+
+    // ── Trip status label ─────────────────────────────────────
+    var statusLabel = esc(getLabel('status' + trip.status));
+
+    return [
+      '<!DOCTYPE html><html lang="' + getCurrentLang() + '">',
+      '<head>',
+        '<meta charset="UTF-8">',
+        '<meta name="viewport" content="width=device-width,initial-scale=1">',
+        '<title>' + esc(trip.name) + '</title>',
+        '<link rel="preconnect" href="https://fonts.googleapis.com">',
+        '<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">',
+        '<style>',
+          '*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }',
+          'html { -webkit-print-color-adjust:exact; print-color-adjust:exact; }',
+          'body { font-family:"Sarabun","Noto Sans",system-ui,sans-serif;',
+                 'background:#f8fafc; color:#0f172a; font-size:14px; line-height:1.5; }',
+          '.page { max-width:720px; margin:0 auto; padding:40px 48px; }',
+          '.no-print { }',
+          '@media print {',
+            '@page { margin:14mm 12mm; size:A4 portrait; }',
+            'body { background:#fff; font-size:12px; }',
+            '.page { max-width:100%; padding:0; }',
+            '.no-print { display:none !important; }',
+            '.card { box-shadow:none !important; }',
+          '}',
+        '</style>',
+      '</head>',
+      '<body>',
+      '<div class="page">',
+
+        // ── Print button ──────────────────────────────────────
+        '<div class="no-print" style="text-align:right;margin-bottom:24px;">',
+          '<button onclick="window.print()" style="',
+            'padding:10px 24px;background:#2563eb;color:#fff;border:none;',
+            'border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;',
+            'font-family:inherit;display:inline-flex;align-items:center;gap:8px;">',
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">',
+              '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>',
+              '<rect x="6" y="14" width="12" height="8"/>',
+            '</svg>',
+            'Print / Save as PDF',
+          '</button>',
+        '</div>',
+
+        // ── Header card ───────────────────────────────────────
+        '<div class="card" style="',
+            'background:linear-gradient(135deg,#0f2d5a 0%,#1e4ba0 55%,#2563eb 100%);',
+            'border-radius:14px;padding:28px 32px;color:#fff;margin-bottom:24px;',
+            'box-shadow:0 4px 24px rgba(37,99,235,.25);">',
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;opacity:.65;',
+               'text-transform:uppercase;margin-bottom:10px;">Trip Itinerary</div>',
+          '<div style="font-size:26px;font-weight:700;line-height:1.25;margin-bottom:14px;">' + esc(trip.name) + '</div>',
+          '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;">',
+            '<span style="font-size:13px;opacity:.9;">📍 ' + esc(trip.destination) + '</span>',
+            '<span style="font-size:13px;opacity:.9;">📅 ' + esc(formatDateRange(trip.startDate, trip.endDate)) + '</span>',
+            '<span style="font-size:11.5px;font-weight:600;padding:3px 11px;border-radius:99px;',
+                  'background:' + tripSC.bg + ';color:' + tripSC.text + ';">' + statusLabel + '</span>',
+          '</div>',
+          statsHtml ? '<div style="display:flex;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.2);">' + statsHtml + '</div>' : '',
+        '</div>',
+
+        // ── Notes ─────────────────────────────────────────────
+        trip.notes ? [
+          '<div style="background:#fff;border-left:3px solid #2563eb;border-radius:0 8px 8px 0;',
+               'padding:12px 16px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06);">',
+            '<div style="font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;',
+                 'letter-spacing:.08em;margin-bottom:5px;">Notes</div>',
+            '<div style="font-size:13px;color:#475569;">' + esc(trip.notes) + '</div>',
+          '</div>',
+        ].join('') : '',
+
+        // ── Schedule section ──────────────────────────────────
+        '<div style="background:#fff;border-radius:12px;padding:24px 28px;',
+             'box-shadow:0 1px 4px rgba(0,0,0,.07);">',
+          '<div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;',
+               'letter-spacing:.1em;margin-bottom:18px;">Schedule</div>',
+          schedHtml,
+        '</div>',
+
+        // ── Footer ────────────────────────────────────────────
+        '<div style="margin-top:20px;display:flex;justify-content:space-between;',
+             'font-size:10px;color:#94a3b8;padding-top:12px;border-top:1px solid #e2e8f0;">',
+          '<span>Generated ' + esc(new Date().toLocaleDateString()) + '</span>',
+          '<span>Trip Manager</span>',
+        '</div>',
+
+      '</div>',
+      '</body></html>',
+    ].join('');
   }
 
   // ── Date/time helper ───────────────────────────────────────
