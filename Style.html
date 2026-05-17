@@ -764,6 +764,17 @@
   .btn-sheet-status.restore { background: var(--s-active); color: var(--s-active-t); }
   .btn-sheet-status.restore:hover { background: #bbf7d0; }
 
+  /* Cancelled-state banner inside trip form */
+  .cancelled-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: var(--s-cancelled); color: var(--s-cancelled-t);
+    border: 1.5px solid #fca5a5;
+    border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 600;
+    animation: slide-up .18s ease;
+  }
+
   /* ── Animations ──────────────────────────────────────── */
   @keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
   @keyframes slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }

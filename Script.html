@@ -313,6 +313,7 @@
       labelNewPw:'New Password',
       labelLanguage:'Language',
       cancelTrip:'Cancel Trip', restoreTrip:'Restore Trip',
+      cancelledBanner:'Trip marked as Cancelled — save to apply',
     },
     th: {
       allTrips:'ทั้งหมด', planning:'วางแผน', active:'กำลังเดินทาง', done:'เสร็จแล้ว', cancelled:'ยกเลิก',
@@ -353,6 +354,7 @@
       labelNewPw:'รหัสผ่านใหม่',
       labelLanguage:'ภาษา',
       cancelTrip:'ยกเลิกทริป', restoreTrip:'กู้คืนทริป',
+      cancelledBanner:'ทริปถูกทำเครื่องหมายยกเลิก — บันทึกเพื่อใช้งาน',
     },
     lo: {
       allTrips:'ທັງໝົດ', planning:'ວາງແຜນ', active:'ກຳລັງເດີນທາງ', done:'ສຳເລັດ', cancelled:'ຍົກເລີກ',
@@ -393,6 +395,7 @@
       labelNewPw:'ລະຫັດຜ່ານໃໝ່',
       labelLanguage:'ພາສາ',
       cancelTrip:'ຍົກເລີກການເດີນທາງ', restoreTrip:'ກູ້ຄືນການເດີນທາງ',
+      cancelledBanner:'ການເດີນທາງຖືກໝາຍວ່າຍົກເລີກ — ບັນທຶກເພື່ອໃຊ້ງານ',
     },
     ja: {
       allTrips:'すべて', planning:'計画中', active:'旅行中', done:'完了', cancelled:'キャンセル',
@@ -433,6 +436,7 @@
       labelNewPw:'新しいパスワード',
       labelLanguage:'言語',
       cancelTrip:'旅行をキャンセル', restoreTrip:'旅行を再開',
+      cancelledBanner:'旅行はキャンセル済みです — 保存して適用',
     },
     zh: {
       allTrips:'全部', planning:'计划中', active:'进行中', done:'已完成', cancelled:'已取消',
@@ -473,6 +477,7 @@
       labelNewPw:'新密码',
       labelLanguage:'语言',
       cancelTrip:'取消行程', restoreTrip:'恢复行程',
+      cancelledBanner:'行程已标记为取消 — 保存以应用',
     },
   };
 
@@ -830,15 +835,19 @@
   }
 
   function updateCancelButton() {
-    var $btn = $('#btn-trip-cancel-toggle');
+    var $btn    = $('#btn-trip-cancel-toggle');
+    var $banner = $('#trip-cancelled-banner');
     if (cancelledState) {
       $btn.addClass('restore').attr('aria-label', t('restoreTrip'));
       $btn.find('.icon-cancel-trip').addClass('hidden');
       $btn.find('.icon-restore-trip').removeClass('hidden');
+      $banner.find('span').text(t('cancelledBanner'));
+      $banner.removeClass('hidden');
     } else {
       $btn.removeClass('restore').attr('aria-label', t('cancelTrip'));
       $btn.find('.icon-cancel-trip').removeClass('hidden');
       $btn.find('.icon-restore-trip').addClass('hidden');
+      $banner.addClass('hidden');
     }
   }
 
