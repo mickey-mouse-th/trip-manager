@@ -783,6 +783,15 @@
   /* ── Utils ───────────────────────────────────────────── */
   .hidden { display: none !important; }
 
+  /* Search highlight */
+  .search-hl {
+    background: #fef9c3;
+    color: #78350f;
+    border-radius: 2px;
+    padding: 0 1px;
+    font-style: normal;
+  }
+
   /* ── Schedule list sheet ─────────────────────────────── */
   #schedule-backdrop { z-index: 215; }
   #schedule-sheet    { z-index: 220; max-height: 95dvh; }
@@ -824,6 +833,7 @@
     background: var(--c-primary); color: #fff; border: none;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
+    margin-left: 10px;
     transition: background var(--ease), transform var(--ease);
   }
   .btn-add-sched:hover { background: var(--c-primary-dk); }

@@ -16,19 +16,66 @@
       { id:'USER-3', name:'viewer1', password:'view123',  role:'viewer', createdAt:'2025-01-03', lastLoginAt:'—', isActive:true, email:'', authMethod:'local', lang:'en' },
     ];
 
+    // Returns a date string offset from today — keeps mock data always realistic
+    function mockDate(offsetDays) {
+      var d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      return d.toISOString().slice(0, 10);
+    }
+    function mockDT(offsetDays, time) { return mockDate(offsetDays) + 'T' + time; }
+
     var SAMPLE_TRIPS = [
-      { id:'TRIP-1', name:'Tokyo Adventure',  destination:'Tokyo, Japan',         startDate:'2025-07-01', endDate:'2025-07-14', status:'Planning',  notes:'Cherry blossom season' },
-      { id:'TRIP-2', name:'Bali Retreat',     destination:'Bali, Indonesia',      startDate:'2025-03-10', endDate:'2025-03-17', status:'Completed', notes:'Beach and temples' },
-      { id:'TRIP-3', name:'Paris Weekend',    destination:'Paris, France',        startDate:'2025-09-05', endDate:'2025-09-08', status:'Active',    notes:'Visit the Louvre' },
-      { id:'TRIP-4', name:'New York Trip',    destination:'New York, USA',        startDate:'2025-11-20', endDate:'2025-11-25', status:'Planning',  notes:'' },
-      { id:'TRIP-5', name:'Chiang Mai Slow',  destination:'Chiang Mai, Thailand', startDate:'2024-12-01', endDate:'2024-12-15', status:'Cancelled', notes:'Postponed' },
+      // Planning  — starts +30 days  · schedules ALL future → first blinks
+      { id:'TRIP-1', name:'Tokyo Adventure',     destination:'Tokyo, Japan',         startDate:mockDate(30),  endDate:mockDate(43),  status:'Planning',  notes:'Cherry blossom season' },
+      // Active    — started yesterday, ends +2  · schedules MIXED → "you are here" blinks
+      { id:'TRIP-2', name:'Paris Weekend',       destination:'Paris, France',        startDate:mockDate(-1),  endDate:mockDate(2),   status:'Active',    notes:'Visit the Louvre' },
+      // Done      — ended 10 days ago  · schedules ALL past → all faded
+      { id:'TRIP-3', name:'Bali Retreat',        destination:'Bali, Indonesia',      startDate:mockDate(-17), endDate:mockDate(-10), status:'Done',      notes:'Beach and temples' },
+      // Cancelled · no schedules
+      { id:'TRIP-4', name:'Chiang Mai Slow',     destination:'Chiang Mai, Thailand', startDate:mockDate(-60), endDate:mockDate(-46), status:'Cancelled', notes:'Postponed — maybe next year' },
+      // Planning  — starts +90 days  · no schedules yet → empty state
+      { id:'TRIP-5', name:'New York Trip',       destination:'New York, USA',        startDate:mockDate(90),  endDate:mockDate(95),  status:'Planning',  notes:'Black Friday shopping' },
+      // Planning  — Thai trip, starts +10 days · schedules ALL future → first blinks
+      { id:'TRIP-6', name:'ทริปเกาะสมุย',       destination:'เกาะสมุย, สุราษฎร์ธานี', startDate:mockDate(10),  endDate:mockDate(14),  status:'Planning',  notes:'ฤดูร้อน ทะเลสวย ดำน้ำดูปะการัง' },
+      // Active    — Thai trip, started 3 days ago · schedules MIXED → "you are here" blinks
+      { id:'TRIP-7', name:'เชียงใหม่วีคเอนด์', destination:'เชียงใหม่, ประเทศไทย',  startDate:mockDate(-3),  endDate:mockDate(1),   status:'Active',    notes:'ตลาดกาดหลวง วัดดอยสุเทพ ถนนนิมมาน' },
     ];
+
     var SAMPLE_SCHEDS = [
-      { id:'S-1', tripId:'TRIP-1', dateTime:'2025-07-01T09:00', detail:'Fly BKK → NRT (TG680)', transport:'Suvarnabhumi Airport', cost:'15000', map:'https://maps.google.com', note:'Window seat booked', status:'Confirmed' },
-      { id:'S-2', tripId:'TRIP-1', dateTime:'2025-07-01T17:00', detail:'Check in — Shinjuku Granbell Hotel', transport:'Narita Express → Shinjuku', cost:'3500', map:'', note:'', status:'Planning' },
-      { id:'S-3', tripId:'TRIP-1', dateTime:'2025-07-02T09:00', detail:'Visit Senso-ji Temple', transport:'Tokyo Metro (Asakusa Line)', cost:'500', map:'https://maps.google.com', note:'Go early to avoid crowd', status:'Planning' },
-      { id:'S-4', tripId:'TRIP-3', dateTime:'2025-09-05T07:30', detail:'Fly BKK → CDG (AF164)', transport:'Suvarnabhumi Airport', cost:'45000', map:'', note:'', status:'Confirmed' },
-      { id:'S-5', tripId:'TRIP-3', dateTime:'2025-09-06T10:00', detail:'Visit the Louvre Museum', transport:'Métro Line 1 (Palais Royal)', cost:'1700', map:'https://maps.google.com', note:'Book tickets in advance', status:'Planning' },
+      // ── Tokyo TRIP-1 ── ALL FUTURE → first item blinks ────────────────────
+      { id:'S-1', tripId:'TRIP-1', dateTime:mockDT(30,'06:00'), detail:'Fly BKK → NRT (TG680)',              transport:'Suvarnabhumi Airport',        cost:'15000', map:'https://maps.google.com', note:'Window seat booked',       status:'Confirmed' },
+      { id:'S-2', tripId:'TRIP-1', dateTime:mockDT(30,'16:30'), detail:'Check in — Shinjuku Granbell Hotel', transport:'Narita Express → Shinjuku',   cost:'3500',  map:'',                       note:'',                         status:'Planning'  },
+      { id:'S-3', tripId:'TRIP-1', dateTime:mockDT(31,'09:00'), detail:'Visit Senso-ji Temple',              transport:'Tokyo Metro (Asakusa Line)',  cost:'500',   map:'https://maps.google.com', note:'Go early to avoid crowds', status:'Planning'  },
+      { id:'S-4', tripId:'TRIP-1', dateTime:mockDT(32,'10:00'), detail:'Day trip to Nikko',                  transport:'Shinkansen',                  cost:'4200',  map:'',                       note:'',                         status:'Planning'  },
+      { id:'S-5', tripId:'TRIP-1', dateTime:mockDT(43,'10:00'), detail:'Fly NRT → BKK (TG681)',              transport:'Narita Airport',              cost:'15000', map:'',                       note:'Return flight',            status:'Planning'  },
+
+      // ── Paris TRIP-2 ── MIXED → "you are here" blinks ─────────────────────
+      { id:'S-6',  tripId:'TRIP-2', dateTime:mockDT(-1,'07:30'), detail:'Fly BKK → CDG (AF164)',             transport:'Suvarnabhumi Airport',        cost:'45000', map:'',                       note:'',                         status:'Confirmed' },
+      { id:'S-7',  tripId:'TRIP-2', dateTime:mockDT(-1,'15:00'), detail:'Check in — Hôtel du Louvre',        transport:'RER B → Châtelet',            cost:'8500',  map:'',                       note:'',                         status:'Done'      },
+      { id:'S-8',  tripId:'TRIP-2', dateTime:mockDT(0, '10:00'), detail:'Visit the Louvre Museum',           transport:'Métro Line 1 (Palais Royal)', cost:'1700',  map:'https://maps.google.com', note:'Book tickets in advance',  status:'Confirmed' },
+      { id:'S-9',  tripId:'TRIP-2', dateTime:mockDT(1, '12:00'), detail:'Lunch at Le Marais',                transport:'Walk',                        cost:'1200',  map:'',                       note:'',                         status:'Planning'  },
+      { id:'S-10', tripId:'TRIP-2', dateTime:mockDT(2, '07:00'), detail:'Fly CDG → BKK (AF165)',             transport:'RER B → Charles de Gaulle',   cost:'45000', map:'',                       note:'Return flight',            status:'Planning'  },
+
+      // ── Bali TRIP-3 ── ALL PAST → all faded, nothing blinks ───────────────
+      { id:'S-11', tripId:'TRIP-3', dateTime:mockDT(-17,'08:00'), detail:'Fly BKK → DPS (TG431)',            transport:'Suvarnabhumi Airport',        cost:'9500',  map:'',                       note:'',                         status:'Done'      },
+      { id:'S-12', tripId:'TRIP-3', dateTime:mockDT(-17,'14:00'), detail:'Check in — Seminyak Beach Resort', transport:'Airport taxi',                cost:'1200',  map:'',                       note:'Booked villa',             status:'Done'      },
+      { id:'S-13', tripId:'TRIP-3', dateTime:mockDT(-15,'09:00'), detail:'Tanah Lot Temple at sunrise',      transport:'Scooter rental',              cost:'400',   map:'https://maps.google.com', note:'',                         status:'Done'      },
+      { id:'S-14', tripId:'TRIP-3', dateTime:mockDT(-13,'11:00'), detail:'Cooking class in Ubud',            transport:'Hotel shuttle',               cost:'2500',  map:'',                       note:'',                         status:'Done'      },
+      { id:'S-15', tripId:'TRIP-3', dateTime:mockDT(-10,'07:30'), detail:'Fly DPS → BKK (TG432)',            transport:'Ngurah Rai Airport',          cost:'9500',  map:'',                       note:'',                         status:'Done'      },
+
+      // ── Koh Samui TRIP-6 ── ALL FUTURE → first item blinks ───────────────
+      { id:'S-16', tripId:'TRIP-6', dateTime:mockDT(10,'06:30'), detail:'บินดอนเมือง → สมุย (PG241)',       transport:'สนามบินดอนเมือง',             cost:'3200',  map:'',                       note:'เช็คอินออนไลน์แล้ว',       status:'Confirmed' },
+      { id:'S-17', tripId:'TRIP-6', dateTime:mockDT(10,'10:00'), detail:'เช็คอิน Samui Palm Beach Resort',  transport:'แท็กซี่จากสนามบิน',          cost:'1500',  map:'https://maps.google.com', note:'',                         status:'Planning'  },
+      { id:'S-18', tripId:'TRIP-6', dateTime:mockDT(11,'09:00'), detail:'ทัวร์เกาะนางยวน ดำน้ำดูปะการัง', transport:'เรือสปีดโบ๊ต',               cost:'1800',  map:'',                       note:'เตรียมครีมกันแดด',         status:'Planning'  },
+      { id:'S-19', tripId:'TRIP-6', dateTime:mockDT(12,'18:30'), detail:'ดินเนอร์ริมทะเล Fisherman Village',transport:'รถสองแถว',                    cost:'600',   map:'https://maps.google.com', note:'',                         status:'Planning'  },
+      { id:'S-20', tripId:'TRIP-6', dateTime:mockDT(14,'11:00'), detail:'บินกลับ สมุย → กรุงเทพ (PG242)',  transport:'สนามบินสมุย',                 cost:'3200',  map:'',                       note:'',                         status:'Planning'  },
+
+      // ── Chiang Mai TRIP-7 ── MIXED → "you are here" blinks ───────────────
+      { id:'S-21', tripId:'TRIP-7', dateTime:mockDT(-3,'05:30'), detail:'บินดอนเมือง → เชียงใหม่ (DD4208)',transport:'สนามบินดอนเมือง',             cost:'1200',  map:'',                       note:'',                         status:'Done'      },
+      { id:'S-22', tripId:'TRIP-7', dateTime:mockDT(-3,'14:00'), detail:'วัดพระธาตุดอยสุเทพ',              transport:'รถสองแถวสาย 15',              cost:'300',   map:'https://maps.google.com', note:'แต่งกายสุภาพ',             status:'Done'      },
+      { id:'S-23', tripId:'TRIP-7', dateTime:mockDT(-2,'08:00'), detail:'ตลาดกาดหลวง ชิมอาหารเช้า',       transport:'เดินเท้า',                    cost:'200',   map:'',                       note:'',                         status:'Done'      },
+      { id:'S-24', tripId:'TRIP-7', dateTime:mockDT(0, '13:00'), detail:'ช้อปปิ้งถนนนิมมานเหมินทร์',      transport:'เดินเท้า',                    cost:'500',   map:'',                       note:'ซื้อของฝาก',               status:'Confirmed' },
+      { id:'S-25', tripId:'TRIP-7', dateTime:mockDT(1, '06:00'), detail:'บินกลับ เชียงใหม่ → กรุงเทพ',    transport:'สนามบินเชียงใหม่',            cost:'1200',  map:'',                       note:'',                         status:'Planning'  },
     ];
 
     function loadTrips() {
@@ -426,7 +473,6 @@
       $searchInput.val('');
       $searchClear.addClass('hidden');
       renderTrips();
-      // test
     });
 
     // Stat pills as filter buttons
@@ -525,10 +571,11 @@
   }
 
   function buildCard(trip) {
+    var q           = $searchInput.val().toLowerCase().trim();
     var dateRange   = formatDateRange(trip.startDate, trip.endDate);
     var statusLower = trip.status.toLowerCase();
     var notesHtml   = trip.notes
-      ? '<div class="trip-card-notes">' + esc(trip.notes) + '</div>'
+      ? '<div class="trip-card-notes">' + highlight(trip.notes, q) + '</div>'
       : '';
     var dayCount = '';
     if (trip.startDate && trip.endDate) {
@@ -542,13 +589,13 @@
           '<span class="badge badge-' + statusLower + ' lbl_status' + trip.status + '"></span>',
         '</div>',
         '<div class="trip-card-body">',
-          '<div class="trip-card-name">' + esc(trip.name) + '</div>',
+          '<div class="trip-card-name">' + highlight(trip.name, q) + '</div>',
           '<div class="trip-card-dest">',
             '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">',
               '<path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/>',
               '<circle cx="12" cy="10" r="3"/>',
             '</svg>',
-            esc(trip.destination),
+            highlight(trip.destination, q),
           '</div>',
           '<div class="trip-card-meta">',
             '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">',
@@ -820,6 +867,15 @@
     return $('<div>').text(String(str)).html();
   }
 
+  // Wraps every occurrence of query q (case-insensitive) in a <mark> for search highlight.
+  // Falls back to plain esc() when q is empty.
+  function highlight(str, q) {
+    var e = esc(str);
+    if (!q) return e;
+    var re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+    return e.replace(re, '<mark class="search-hl">$1</mark>');
+  }
+
   function indexById(id) {
     var result = -1;
     $.each(allTrips, function (i, t) {
@@ -892,32 +948,46 @@
     markCurrentSchedule();
   }
 
-  // Marks the schedule item that is "now":
-  //   - The last item whose dateTime ≤ current time (you are here)
-  //   - If all items are in the future, the first item (coming up next)
-  // Items before it are faded (.sched-item--past).
-  // The "now" dot gets a pulsing ring (.sched-dot--now).
+  // Marks the schedule item that is "now" based on three cases:
+  //
+  //  ALL future  → first item pulses ("coming up next")
+  //  MIXED       → last past item pulses ("you are here"); earlier ones faded
+  //  ALL past    → nothing pulses (trip is over — show as plain history)
+  //
   function markCurrentSchedule() {
     if (!allSchedules.length) return;
     var now = new Date();
 
-    // Find the last schedule that has already started
-    var currentIdx = -1;
+    var lastPastIdx = -1;   // index of the last schedule that has started
+    var hasAnyFuture = false;
+
     $.each(allSchedules, function (i, s) {
-      if (s.dateTime && new Date(s.dateTime) <= now) currentIdx = i;
+      if (!s.dateTime) return;
+      if (new Date(s.dateTime) <= now) lastPastIdx = i;
+      else hasAnyFuture = true;
     });
-    // Nothing started yet — treat the first upcoming as "now"
-    if (currentIdx === -1) currentIdx = 0;
+
+    var allPast   = lastPastIdx !== -1 && !hasAnyFuture;
+    var allFuture = lastPastIdx === -1;
 
     $.each(allSchedules, function (i, s) {
       var $item = $('#schedule-list .sched-item[data-id="' + s.id + '"]');
       $item.find('.sched-dot').removeClass('sched-dot--now');
       $item.removeClass('sched-item--past');
-      if (i < currentIdx) {
+
+      if (allPast) {
+        // All done — fade everything so it reads as history, no pulse
         $item.addClass('sched-item--past');
-      } else if (i === currentIdx) {
-        $item.find('.sched-dot').addClass('sched-dot--now');
+        return;
       }
+      if (allFuture) {
+        // Nothing started yet — pulse only the first item
+        if (i === 0) $item.find('.sched-dot').addClass('sched-dot--now');
+        return;
+      }
+      // Mixed: you are here
+      if (i < lastPastIdx)       $item.addClass('sched-item--past');
+      else if (i === lastPastIdx) $item.find('.sched-dot').addClass('sched-dot--now');
     });
   }
 
