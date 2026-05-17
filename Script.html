@@ -367,7 +367,7 @@
 
   // ── Select2 ──────────────────────────────────────────────
   function initSelect2() {
-    // Filter dropdown in toolbar
+    // Filter dropdown in toolbar (always visible — safe to init now)
     $('#filter-status').select2({
       minimumResultsForSearch: Infinity,
       width: 'resolve'
@@ -377,12 +377,22 @@
       renderTrips();
     });
 
-    // Status select inside the schedule form sheet
+    // #sf-status is inside #sched-form-sheet which starts hidden (display:none).
+    // Select2 can't compute dimensions on a hidden element — init lazily in
+    // openSchedForm() on first open instead.
+  }
+
+  // Lazy-init flag for the schedule-form status Select2
+  var _sfStatusReady = false;
+
+  function initSchedStatusSelect2() {
+    if (_sfStatusReady) return;
     $('#sf-status').select2({
       minimumResultsForSearch: Infinity,
       dropdownParent: $('#sched-form-sheet'),
       width: '100%'
     });
+    _sfStatusReady = true;
   }
 
   function setFilterSelect(val) {
@@ -960,6 +970,10 @@
 
   // ── Schedule form ──────────────────────────────────────────
   function openSchedForm(sched) {
+    // Sheet is now visible — safe to init Select2 (first call only)
+    openSheet('#sched-form-sheet', '#sched-form-backdrop');
+    initSchedStatusSelect2();
+
     editingSchedId = sched ? sched.id : null;
     $('#sched-form-title').text(sched ? getLabel('editSchedTitle') : getLabel('addSchedTitle'));
     $('#sf-save-label').text(sched ? getLabel('update') : getLabel('save'));
@@ -980,7 +994,6 @@
       $('#sf-trip-id').val(currentTrip ? currentTrip.id : '');
       $('#sf-status').val('Planning').trigger('change');
     }
-    openSheet('#sched-form-sheet', '#sched-form-backdrop');
     setTimeout(function () { $('#sf-datetime').focus(); }, 350);
   }
 
