@@ -260,247 +260,47 @@
   var editingSchedId    = null;
   var pendingSchedDelId = null;
 
-  // ── I18N ─────────────────────────────────────────────────
-  var I18N = {
-    en: {
-      // filter pills
-      allTrips:'All', planning:'Planning', active:'Active', done:'Done', cancelled:'Cancelled',
-      // search
-      searchPlaceholder:'Search trips…',
-      // trip CRUD
-      addTrip:'New Trip', addTripBtn:'Add Trip',
-      addTripTitle:'Add Trip', editTripTitle:'Edit Trip',
-      saveTrip:'Save Trip', updateTrip:'Update Trip',
-      // card actions
-      edit:'Edit', plan:'Plan', delete:'Delete',
-      // schedule CRUD
-      addSchedTitle:'Add Schedule', editSchedTitle:'Edit Schedule',
-      update:'Update',
-      // empty / loading
-      noTrips:'No trips found', noTripsDesc:'Add your first trip or clear the filters.',
-      loading:'Loading your trips…', loadingScheds:'Loading schedules…',
-      addSchedule:'Add First Schedule', noSchedules:'No schedules yet',
-      // header
-      users:'Users', myProfile:'My Profile', signOut:'Sign Out',
-      // profile
-      profileTitle:'My Profile', saveChanges:'Save Changes',
-      // buttons
-      cancel:'Cancel', save:'Save',
-      // status labels (Select2 options)
-      statusAll:'All Status',
-      statusPlanning:'Planning', statusActive:'Active',
-      statusCompleted:'Completed', statusCancelled:'Cancelled',
-      statusConfirmed:'Confirmed', statusDone:'Done',
-      // validation
-      fillRequired:'Please fill required fields',
-      // form labels & placeholders
-      labelTripName:'Trip Name', labelDestination:'Destination',
-      labelStartDate:'Start Date', labelEndDate:'End Date',
-      labelStatus:'Status', labelNotes:'Notes',
-      phTripName:'e.g. Summer in Japan', phDestination:'e.g. Tokyo, Japan',
-      phNotes:'Any notes about this trip…',
-      deleteTripQ:'Delete Trip?', deleteTripBody:'will be permanently deleted. This cannot be undone.',
-      delete:'Delete',
-      labelDateTime:'Date & Time', labelDetail:'Detail',
-      labelTransport:'Transport', labelCost:'Cost (฿)',
-      labelMapLink:'Map Link', labelNote:'Note',
-      phDetail:'e.g. Visit Senso-ji Temple', phTransport:'e.g. BTS → Taxi',
-      phNote:'Additional notes…',
-      deleteSchedQ:'Delete Schedule?', deleteBody:'will be permanently deleted.',
-      labelDisplayName:'Display Name', phDisplayName:'Your display name',
-      labelChangePassword:'Change Password',
-      labelCurrentPw:'Current Password', phCurrentPw:'Enter current password',
-      labelNewPw:'New Password',
-      labelLanguage:'Language',
-      cancelTrip:'Cancel Trip', restoreTrip:'Restore Trip',
-      cancelledBanner:'Trip marked as Cancelled — save to apply',
-    },
-    th: {
-      allTrips:'ทั้งหมด', planning:'วางแผน', active:'กำลังเดินทาง', done:'เสร็จแล้ว', cancelled:'ยกเลิก',
-      searchPlaceholder:'ค้นหาทริป…',
-      addTrip:'เพิ่มทริป', addTripBtn:'เพิ่มทริป',
-      addTripTitle:'เพิ่มทริป', editTripTitle:'แก้ไขทริป',
-      saveTrip:'บันทึกทริป', updateTrip:'อัปเดตทริป',
-      edit:'แก้ไข', plan:'แผน', delete:'ลบ',
-      addSchedTitle:'เพิ่มกำหนดการ', editSchedTitle:'แก้ไขกำหนดการ',
-      update:'อัปเดต',
-      noTrips:'ไม่พบทริป', noTripsDesc:'เพิ่มทริปแรกหรือล้างตัวกรอง',
-      loading:'กำลังโหลดทริป…', loadingScheds:'กำลังโหลดกำหนดการ…',
-      addSchedule:'เพิ่มกำหนดการแรก', noSchedules:'ยังไม่มีกำหนดการ',
-      users:'ผู้ใช้', myProfile:'โปรไฟล์', signOut:'ออกจากระบบ',
-      profileTitle:'โปรไฟล์ของฉัน', saveChanges:'บันทึกการเปลี่ยนแปลง',
-      cancel:'ยกเลิก', save:'บันทึก',
-      statusAll:'ทุกสถานะ',
-      statusPlanning:'วางแผน', statusActive:'กำลังเดินทาง',
-      statusCompleted:'เสร็จแล้ว', statusCancelled:'ยกเลิก',
-      statusConfirmed:'ยืนยันแล้ว', statusDone:'เสร็จสิ้น',
-      fillRequired:'กรุณากรอกข้อมูลที่จำเป็น',
-      labelTripName:'ชื่อทริป', labelDestination:'ปลายทาง',
-      labelStartDate:'วันเริ่มต้น', labelEndDate:'วันสิ้นสุด',
-      labelStatus:'สถานะ', labelNotes:'หมายเหตุ',
-      phTripName:'เช่น ฤดูร้อนที่ญี่ปุ่น', phDestination:'เช่น โตเกียว ประเทศญี่ปุ่น',
-      phNotes:'หมายเหตุเพิ่มเติมเกี่ยวกับทริปนี้…',
-      deleteTripQ:'ลบทริป?', deleteTripBody:'จะถูกลบอย่างถาวร ไม่สามารถย้อนกลับได้',
-      delete:'ลบ',
-      labelDateTime:'วันที่ & เวลา', labelDetail:'รายละเอียด',
-      labelTransport:'การเดินทาง', labelCost:'ค่าใช้จ่าย (฿)',
-      labelMapLink:'ลิงก์แผนที่', labelNote:'หมายเหตุ',
-      phDetail:'เช่น ชมวัดเซ็นโซจิ', phTransport:'เช่น BTS → แท็กซี่',
-      phNote:'หมายเหตุเพิ่มเติม…',
-      deleteSchedQ:'ลบกำหนดการ?', deleteBody:'จะถูกลบอย่างถาวร',
-      labelDisplayName:'ชื่อที่แสดง', phDisplayName:'ชื่อของคุณ',
-      labelChangePassword:'เปลี่ยนรหัสผ่าน',
-      labelCurrentPw:'รหัสผ่านปัจจุบัน', phCurrentPw:'ใส่รหัสผ่านปัจจุบัน',
-      labelNewPw:'รหัสผ่านใหม่',
-      labelLanguage:'ภาษา',
-      cancelTrip:'ยกเลิกทริป', restoreTrip:'กู้คืนทริป',
-      cancelledBanner:'ทริปถูกทำเครื่องหมายยกเลิก — บันทึกเพื่อใช้งาน',
-    },
-    lo: {
-      allTrips:'ທັງໝົດ', planning:'ວາງແຜນ', active:'ກຳລັງເດີນທາງ', done:'ສຳເລັດ', cancelled:'ຍົກເລີກ',
-      searchPlaceholder:'ຄົ້ນຫາການເດີນທາງ…',
-      addTrip:'ເພີ່ມການເດີນທາງ', addTripBtn:'ເພີ່ມ',
-      addTripTitle:'ເພີ່ມການເດີນທາງ', editTripTitle:'ແກ້ໄຂການເດີນທາງ',
-      saveTrip:'ບັນທຶກ', updateTrip:'ອັບເດດ',
-      edit:'ແກ້ໄຂ', plan:'ແຜນ', delete:'ລຶບ',
-      addSchedTitle:'ເພີ່ມຕາຕະລາງ', editSchedTitle:'ແກ້ໄຂຕາຕະລາງ',
-      update:'ອັບເດດ',
-      noTrips:'ບໍ່ພົບການເດີນທາງ', noTripsDesc:'ເພີ່ມການເດີນທາງທຳອິດ',
-      loading:'ກຳລັງໂຫຼດ…', loadingScheds:'ກຳລັງໂຫຼດຕາຕະລາງ…',
-      addSchedule:'ເພີ່ມຕາຕະລາງທຳອິດ', noSchedules:'ຍັງບໍ່ມີຕາຕະລາງ',
-      users:'ຜູ້ໃຊ້', myProfile:'ໂປຣໄຟລ໌', signOut:'ອອກຈາກລະບົບ',
-      profileTitle:'ໂປຣໄຟລ໌ຂອງຂ້ອຍ', saveChanges:'ບັນທຶກການປ່ຽນແປງ',
-      cancel:'ຍົກເລີກ', save:'ບັນທຶກ',
-      statusAll:'ທຸກສະຖານະ',
-      statusPlanning:'ວາງແຜນ', statusActive:'ກຳລັງເດີນທາງ',
-      statusCompleted:'ສຳເລັດ', statusCancelled:'ຍົກເລີກ',
-      statusConfirmed:'ຢືນຢັນແລ້ວ', statusDone:'ສຳເລັດສິ້ນ',
-      fillRequired:'ກະລຸນາຕື່ມຂໍ້ມູນທີ່ຈຳເປັນ',
-      labelTripName:'ຊື່ການເດີນທາງ', labelDestination:'ຈຸດໝາຍປາຍທາງ',
-      labelStartDate:'ວັນທີເລີ່ມ', labelEndDate:'ວັນທີສິ້ນສຸດ',
-      labelStatus:'ສະຖານະ', labelNotes:'ໝາຍເຫດ',
-      phTripName:'ຕ.ຢ. ຮ້ອນຢູ່ຍີ່ປຸ່ນ', phDestination:'ຕ.ຢ. ໂຕກຽວ, ຍີ່ປຸ່ນ',
-      phNotes:'ໝາຍເຫດເພີ່ມເຕີມ…',
-      deleteTripQ:'ລຶບການເດີນທາງ?', deleteTripBody:'ຈະຖືກລຶບຖາວອນ ບໍ່ສາມາດກູ້ຄືນໄດ້',
-      delete:'ລຶບ',
-      labelDateTime:'ວັນທີ & ເວລາ', labelDetail:'ລາຍລະອຽດ',
-      labelTransport:'ການຂົນສົ່ງ', labelCost:'ຄ່າໃຊ້ຈ່າຍ (฿)',
-      labelMapLink:'ລິ້ງແຜນທີ່', labelNote:'ໝາຍເຫດ',
-      phDetail:'ຕ.ຢ. ໄປຢ້ຽມວັດ Senso-ji', phTransport:'ຕ.ຢ. BTS → ແທັກຊີ',
-      phNote:'ໝາຍເຫດເພີ່ມເຕີມ…',
-      deleteSchedQ:'ລຶບຕາຕະລາງ?', deleteBody:'ຈະຖືກລຶບຖາວອນ',
-      labelDisplayName:'ຊື່ທີ່ສະແດງ', phDisplayName:'ຊື່ຂອງທ່ານ',
-      labelChangePassword:'ປ່ຽນລະຫັດຜ່ານ',
-      labelCurrentPw:'ລະຫັດຜ່ານປັດຈຸບັນ', phCurrentPw:'ໃສ່ລະຫັດຜ່ານປັດຈຸບັນ',
-      labelNewPw:'ລະຫັດຜ່ານໃໝ່',
-      labelLanguage:'ພາສາ',
-      cancelTrip:'ຍົກເລີກການເດີນທາງ', restoreTrip:'ກູ້ຄືນການເດີນທາງ',
-      cancelledBanner:'ການເດີນທາງຖືກໝາຍວ່າຍົກເລີກ — ບັນທຶກເພື່ອໃຊ້ງານ',
-    },
-    ja: {
-      allTrips:'すべて', planning:'計画中', active:'旅行中', done:'完了', cancelled:'キャンセル',
-      searchPlaceholder:'旅行を検索…',
-      addTrip:'旅行を追加', addTripBtn:'追加',
-      addTripTitle:'旅行を追加', editTripTitle:'旅行を編集',
-      saveTrip:'保存', updateTrip:'更新',
-      edit:'編集', plan:'計画', delete:'削除',
-      addSchedTitle:'スケジュールを追加', editSchedTitle:'スケジュールを編集',
-      update:'更新',
-      noTrips:'旅行が見つかりません', noTripsDesc:'最初の旅行を追加するか、フィルターをクリアしてください。',
-      loading:'旅行を読み込み中…', loadingScheds:'スケジュールを読み込み中…',
-      addSchedule:'最初のスケジュールを追加', noSchedules:'スケジュールはまだありません',
-      users:'ユーザー', myProfile:'プロフィール', signOut:'サインアウト',
-      profileTitle:'マイプロフィール', saveChanges:'変更を保存',
-      cancel:'キャンセル', save:'保存',
-      statusAll:'すべてのステータス',
-      statusPlanning:'計画中', statusActive:'旅行中',
-      statusCompleted:'完了', statusCancelled:'キャンセル',
-      statusConfirmed:'確認済み', statusDone:'終了',
-      fillRequired:'必須項目を入力してください',
-      labelTripName:'旅行名', labelDestination:'目的地',
-      labelStartDate:'開始日', labelEndDate:'終了日',
-      labelStatus:'ステータス', labelNotes:'メモ',
-      phTripName:'例：日本の夏旅', phDestination:'例：東京、日本',
-      phNotes:'この旅行についてのメモ…',
-      deleteTripQ:'旅行を削除?', deleteTripBody:'は永久に削除されます。元に戻せません。',
-      delete:'削除',
-      labelDateTime:'日時', labelDetail:'詳細',
-      labelTransport:'交通手段', labelCost:'費用 (฿)',
-      labelMapLink:'マップリンク', labelNote:'ノート',
-      phDetail:'例：浅草寺を訪問', phTransport:'例：BTS → タクシー',
-      phNote:'追加メモ…',
-      deleteSchedQ:'スケジュールを削除?', deleteBody:'は永久に削除されます。',
-      labelDisplayName:'表示名', phDisplayName:'表示名を入力',
-      labelChangePassword:'パスワード変更',
-      labelCurrentPw:'現在のパスワード', phCurrentPw:'現在のパスワードを入力',
-      labelNewPw:'新しいパスワード',
-      labelLanguage:'言語',
-      cancelTrip:'旅行をキャンセル', restoreTrip:'旅行を再開',
-      cancelledBanner:'旅行はキャンセル済みです — 保存して適用',
-    },
-    zh: {
-      allTrips:'全部', planning:'计划中', active:'进行中', done:'已完成', cancelled:'已取消',
-      searchPlaceholder:'搜索行程…',
-      addTrip:'添加行程', addTripBtn:'添加',
-      addTripTitle:'添加行程', editTripTitle:'编辑行程',
-      saveTrip:'保存', updateTrip:'更新',
-      edit:'编辑', plan:'计划', delete:'删除',
-      addSchedTitle:'添加日程', editSchedTitle:'编辑日程',
-      update:'更新',
-      noTrips:'未找到行程', noTripsDesc:'添加您的第一个行程或清除筛选器。',
-      loading:'正在加载行程…', loadingScheds:'正在加载日程…',
-      addSchedule:'添加第一个日程', noSchedules:'暂无日程',
-      users:'用户', myProfile:'个人资料', signOut:'退出',
-      profileTitle:'我的资料', saveChanges:'保存更改',
-      cancel:'取消', save:'保存',
-      statusAll:'所有状态',
-      statusPlanning:'计划中', statusActive:'进行中',
-      statusCompleted:'已完成', statusCancelled:'已取消',
-      statusConfirmed:'已确认', statusDone:'已结束',
-      fillRequired:'请填写必填项',
-      labelTripName:'行程名', labelDestination:'目的地',
-      labelStartDate:'开始日期', labelEndDate:'结束日期',
-      labelStatus:'状态', labelNotes:'备注',
-      phTripName:'例：日本夏日之旅', phDestination:'例：东京，日本',
-      phNotes:'关于此行程的备注…',
-      deleteTripQ:'删除行程?', deleteTripBody:'将被永久删除。此操作无法撤销。',
-      delete:'删除',
-      labelDateTime:'日期和时间', labelDetail:'详情',
-      labelTransport:'交通方式', labelCost:'费用 (฿)',
-      labelMapLink:'地图链接', labelNote:'备注',
-      phDetail:'例：参观浅草寺', phTransport:'例：BTS → 出租车',
-      phNote:'额外备注…',
-      deleteSchedQ:'删除日程?', deleteBody:'将被永久删除。',
-      labelDisplayName:'显示名称', phDisplayName:'您的显示名称',
-      labelChangePassword:'修改密码',
-      labelCurrentPw:'当前密码', phCurrentPw:'输入当前密码',
-      labelNewPw:'新密码',
-      labelLanguage:'语言',
-      cancelTrip:'取消行程', restoreTrip:'恢复行程',
-      cancelledBanner:'行程已标记为取消 — 保存以应用',
-    },
-  };
+  // ── I18N — CSS-based; JS reads labels via computed ::before content ──────
+  var _labelCache = {};
+  var _$probe     = null;
 
   function getCurrentLang() {
-    return (currentUser && currentUser.lang) || 'en';
+    var m = ($('body').attr('class') || '').match(/\blang-(\w+)\b/);
+    return m ? m[1] : 'en';
   }
 
-  function t(key) {
-    var lang = getCurrentLang();
-    return (I18N[lang] && I18N[lang][key]) || I18N['en'][key] || key;
+  // Read a translated string from the active CSS i18n file.
+  // Uses a hidden probe element to resolve the ::before content value.
+  function getLabel(key) {
+    if (_labelCache[key] !== undefined) return _labelCache[key];
+    if (!_$probe) {
+      _$probe = $('<i>').css({ position: 'absolute', left: '-9999px', visibility: 'hidden', pointerEvents: 'none' }).appendTo('body');
+    }
+    _$probe.attr('class', 'lbl_' + key);
+    var raw = getComputedStyle(_$probe[0], '::before').getPropertyValue('content');
+    // Strip surrounding quotes added by the browser (e.g.  "Hello"  →  Hello)
+    var val = raw.replace(/^["']|["']$/g, '');
+    if (!val || val === 'none' || val === 'normal') val = key;
+    _labelCache[key] = val;
+    return val;
+  }
+
+  // Switch language: update body class, clear label cache, re-apply dynamic labels.
+  function applyLang(lang) {
+    $('body').removeClass('lang-en lang-th lang-lo lang-ja lang-zh').addClass('lang-' + (lang || 'en'));
+    _labelCache = {};
+    applyTranslations();
   }
 
   function applyTranslations() {
-    // Loop all data-i18n elements
-    $('[data-i18n]').each(function () {
-      $(this).text(t($(this).data('i18n')));
-    });
-    // Loop all placeholder translations
+    // Static labels (lbl_* classes) are handled entirely by CSS — no JS loop needed.
+
+    // Placeholders can't be set by CSS ::before — update via JS.
     $('[data-i18n-ph]').each(function () {
-      $(this).attr('placeholder', t($(this).data('i18n-ph')));
+      $(this).attr('placeholder', getLabel($(this).data('i18n-ph')));
     });
 
-    // Select2 option labels (options can't use data-i18n — Select2 renders its own DOM)
+    // Select2 option labels (Select2 renders its own DOM, bypassing CSS ::before).
     updateSelectOptions('#filter-status', [
       { val:'',          key:'statusAll' },
       { val:'Planning',  key:'statusPlanning' },
@@ -514,10 +314,6 @@
       { val:'Done',      key:'statusDone' },
       { val:'Cancelled', key:'statusCancelled' },
     ]);
-
-    // Only re-render cards if trips are already loaded — avoid showing empty
-    // state during the initial boot before the first getTrips() call returns.
-    if (allTrips.length) renderTrips();
   }
 
   function updateSelectOptions(selector, pairs) {
@@ -525,7 +321,7 @@
     if (!$sel.length) return;
     var current = $sel.val();
     $.each(pairs, function (_, p) {
-      $sel.find('option[value="' + p.val + '"]').text(t(p.key));
+      $sel.find('option[value="' + p.val + '"]').text(getLabel(p.key));
     });
     // Use 'change' (not 'change.select2') so Select2 re-reads the DOM option
     // text instead of serving its stale internal data cache.
@@ -733,7 +529,7 @@
     var $card = $([
       '<div class="trip-card status-' + statusLower + '" data-id="' + esc(trip.id) + '">',
         '<div class="trip-card-banner">',
-          '<span class="badge badge-' + statusLower + '">' + t('status' + trip.status) + '</span>',
+          '<span class="badge badge-' + statusLower + ' lbl_status' + trip.status + '"></span>',
         '</div>',
         '<div class="trip-card-body">',
           '<div class="trip-card-name">' + esc(trip.name) + '</div>',
@@ -760,14 +556,14 @@
               '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>',
               '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
             '</svg>',
-            t('edit'),
+            '<span class="lbl_edit"></span>',
           '</button>',
           '<button class="card-action-btn sched" data-action="schedule">',
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">',
               '<rect x="3" y="4" width="18" height="18" rx="2"/>',
               '<line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
             '</svg>',
-            t('plan'),
+            '<span class="lbl_plan"></span>',
           '</button>',
           '<button class="card-action-btn del" data-action="delete">',
             '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">',
@@ -776,7 +572,7 @@
               '<path d="M10 11v6"/><path d="M14 11v6"/>',
               '<path d="M9 6V4h6v2"/>',
             '</svg>',
-            t('delete'),
+            '<span class="lbl_delete"></span>',
           '</button>',
         '</div>',
       '</div>'
@@ -805,8 +601,8 @@
   function openAddSheet() {
     editingId      = null;
     cancelledState = false;
-    $modalTitle.text(t('addTripTitle'));
-    $btnSaveLabel.text(t('saveTrip'));
+    $modalTitle.text(getLabel('addTripTitle'));
+    $btnSaveLabel.text(getLabel('saveTrip'));
     $('#trip-form').trigger('reset');
     clearErrors();
     $('#btn-trip-cancel-toggle').addClass('hidden');
@@ -817,8 +613,8 @@
   function openEditSheet(trip) {
     editingId      = trip.id;
     cancelledState = (trip.status === 'Cancelled');
-    $modalTitle.text(t('editTripTitle'));
-    $btnSaveLabel.text(t('updateTrip'));
+    $modalTitle.text(getLabel('editTripTitle'));
+    $btnSaveLabel.text(getLabel('updateTrip'));
     clearErrors();
 
     $('#field-id').val(trip.id);
@@ -838,13 +634,12 @@
     var $btn    = $('#btn-trip-cancel-toggle');
     var $banner = $('#trip-cancelled-banner');
     if (cancelledState) {
-      $btn.addClass('restore').attr('aria-label', t('restoreTrip'));
+      $btn.addClass('restore').attr('aria-label', getLabel('restoreTrip'));
       $btn.find('.icon-cancel-trip').addClass('hidden');
       $btn.find('.icon-restore-trip').removeClass('hidden');
-      $banner.find('span').text(t('cancelledBanner'));
       $banner.removeClass('hidden');
     } else {
-      $btn.removeClass('restore').attr('aria-label', t('cancelTrip'));
+      $btn.removeClass('restore').attr('aria-label', getLabel('cancelTrip'));
       $btn.find('.icon-cancel-trip').removeClass('hidden');
       $btn.find('.icon-restore-trip').addClass('hidden');
       $banner.addClass('hidden');
@@ -1118,10 +913,10 @@
           '</div>',
           noteHtml,
           '<div class="sched-card-footer">',
-            '<span class="sched-badge ' + cls + '">' + esc(s.status) + '</span>',
+            '<span class="sched-badge ' + cls + ' lbl_status' + s.status + '"></span>',
             '<div class="sched-card-actions">',
-              '<button class="sched-act-btn" data-action="edit">Edit</button>',
-              '<button class="sched-act-btn del" data-action="delete">Delete</button>',
+              '<button class="sched-act-btn lbl_edit" data-action="edit"></button>',
+              '<button class="sched-act-btn del lbl_delete" data-action="delete"></button>',
             '</div>',
           '</div>',
         '</div>',
@@ -1136,8 +931,8 @@
   // ── Schedule form ──────────────────────────────────────────
   function openSchedForm(sched) {
     editingSchedId = sched ? sched.id : null;
-    $('#sched-form-title').text(sched ? t('editSchedTitle') : t('addSchedTitle'));
-    $('#sf-save-label').text(sched ? t('update') : t('save'));
+    $('#sched-form-title').text(sched ? getLabel('editSchedTitle') : getLabel('addSchedTitle'));
+    $('#sf-save-label').text(sched ? getLabel('update') : getLabel('save'));
     $('#sched-form').trigger('reset');
     $('#sched-form .error').removeClass('error');
 
@@ -1175,7 +970,7 @@
       var $el = $('#' + id);
       if (!$el.val().trim()) { $el.addClass('error'); ok = false; }
     });
-    if (!ok) { showToast(t('fillRequired'), 'error'); return; }
+    if (!ok) { showToast(getLabel('fillRequired'), 'error'); return; }
 
     var sched = {
       id:        $('#sf-id').val(),
@@ -1535,7 +1330,7 @@
     setTimeout(function () { $('#login-screen').addClass('hidden'); }, 350);
     applyRolePermissions();
     updateHeaderUser();
-    applyTranslations();
+    applyLang(user.lang || 'en');
     if (!allTrips.length) init();
   }
 
@@ -1646,7 +1441,7 @@
 
   function openProfileSheet() {
     if (!currentUser) return;
-    selectedLang = getCurrentLang();
+    selectedLang = getCurrentLang();  // reads lang-XX class from body
 
     $('#profile-avatar-lg').text(currentUser.name.charAt(0).toUpperCase());
     $('#profile-display-name').text(currentUser.name);
@@ -1710,7 +1505,7 @@
         if (updates.lang)    currentUser.lang = updates.lang;
         localStorage.setItem('tm_user', JSON.stringify(currentUser));
         updateHeaderUser();
-        applyTranslations();
+        applyLang(currentUser.lang || 'en');
         closeProfileSheet();
         showToast('Profile updated', 'success');
       })
@@ -1733,7 +1528,7 @@
         currentUser = JSON.parse(saved);
         applyRolePermissions();
         updateHeaderUser();
-        applyTranslations();
+        applyLang(currentUser.lang || 'en');
         init();
       } catch (e) {
         localStorage.removeItem('tm_user');

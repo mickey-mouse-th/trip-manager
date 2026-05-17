@@ -1,0 +1,112 @@
+<style>
+/* ── Lao ──────────────────────────────────────────────────── */
+
+/* Filter pills */
+body.lang-lo .lbl_allTrips::before     { content: 'ທັງໝົດ'; }
+body.lang-lo .lbl_planning::before     { content: 'ວາງແຜນ'; }
+body.lang-lo .lbl_active::before       { content: 'ກຳລັງເດີນທາງ'; }
+body.lang-lo .lbl_done::before         { content: 'ສຳເລັດ'; }
+body.lang-lo .lbl_cancelled::before    { content: 'ຍົກເລີກ'; }
+
+/* Search */
+body.lang-lo .lbl_searchPlaceholder::before { content: 'ຄົ້ນຫາການເດີນທາງ…'; }
+
+/* Trip CRUD */
+body.lang-lo .lbl_addTrip::before      { content: 'ເພີ່ມການເດີນທາງ'; }
+body.lang-lo .lbl_addTripBtn::before   { content: 'ເພີ່ມ'; }
+body.lang-lo .lbl_addTripTitle::before { content: 'ເພີ່ມການເດີນທາງ'; }
+body.lang-lo .lbl_editTripTitle::before{ content: 'ແກ້ໄຂການເດີນທາງ'; }
+body.lang-lo .lbl_saveTrip::before     { content: 'ບັນທຶກ'; }
+body.lang-lo .lbl_updateTrip::before   { content: 'ອັບເດດ'; }
+
+/* Card actions */
+body.lang-lo .lbl_edit::before         { content: 'ແກ້ໄຂ'; }
+body.lang-lo .lbl_plan::before         { content: 'ແຜນ'; }
+body.lang-lo .lbl_delete::before       { content: 'ລຶບ'; }
+
+/* Schedule CRUD */
+body.lang-lo .lbl_addSchedTitle::before  { content: 'ເພີ່ມຕາຕະລາງ'; }
+body.lang-lo .lbl_editSchedTitle::before { content: 'ແກ້ໄຂຕາຕະລາງ'; }
+body.lang-lo .lbl_update::before         { content: 'ອັບເດດ'; }
+body.lang-lo .lbl_save::before           { content: 'ບັນທຶກ'; }
+
+/* Empty / loading */
+body.lang-lo .lbl_noTrips::before      { content: 'ບໍ່ພົບການເດີນທາງ'; }
+body.lang-lo .lbl_noTripsDesc::before  { content: 'ເພີ່ມການເດີນທາງທຳອິດ'; }
+body.lang-lo .lbl_loading::before      { content: 'ກຳລັງໂຫຼດ…'; }
+body.lang-lo .lbl_loadingScheds::before{ content: 'ກຳລັງໂຫຼດຕາຕະລາງ…'; }
+body.lang-lo .lbl_addSchedule::before  { content: 'ເພີ່ມຕາຕະລາງທຳອິດ'; }
+body.lang-lo .lbl_noSchedules::before  { content: 'ຍັງບໍ່ມີຕາຕະລາງ'; }
+
+/* Header */
+body.lang-lo .lbl_users::before        { content: 'ຜູ້ໃຊ້'; }
+body.lang-lo .lbl_myProfile::before    { content: 'ໂປຣໄຟລ໌'; }
+body.lang-lo .lbl_signOut::before      { content: 'ອອກຈາກລະບົບ'; }
+
+/* Profile */
+body.lang-lo .lbl_profileTitle::before   { content: 'ໂປຣໄຟລ໌ຂອງຂ້ອຍ'; }
+body.lang-lo .lbl_saveChanges::before    { content: 'ບັນທຶກການປ່ຽນແປງ'; }
+
+/* Buttons */
+body.lang-lo .lbl_cancel::before       { content: 'ຍົກເລີກ'; }
+
+/* Status labels (Select2 options & badges) */
+body.lang-lo .lbl_statusAll::before        { content: 'ທຸກສະຖານະ'; }
+body.lang-lo .lbl_statusPlanning::before   { content: 'ວາງແຜນ'; }
+body.lang-lo .lbl_statusActive::before     { content: 'ກຳລັງເດີນທາງ'; }
+body.lang-lo .lbl_statusCompleted::before  { content: 'ສຳເລັດ'; }
+body.lang-lo .lbl_statusCancelled::before  { content: 'ຍົກເລີກ'; }
+body.lang-lo .lbl_statusConfirmed::before  { content: 'ຢືນຢັນແລ້ວ'; }
+body.lang-lo .lbl_statusDone::before       { content: 'ສຳເລັດສິ້ນ'; }
+
+/* Validation */
+body.lang-lo .lbl_fillRequired::before { content: 'ກະລຸນາຕື່ມຂໍ້ມູນທີ່ຈຳເປັນ'; }
+
+/* Trip form labels */
+body.lang-lo .lbl_labelTripName::before    { content: 'ຊື່ການເດີນທາງ'; }
+body.lang-lo .lbl_labelDestination::before { content: 'ຈຸດໝາຍປາຍທາງ'; }
+body.lang-lo .lbl_labelStartDate::before   { content: 'ວັນທີເລີ່ມ'; }
+body.lang-lo .lbl_labelEndDate::before     { content: 'ວັນທີສິ້ນສຸດ'; }
+body.lang-lo .lbl_labelStatus::before      { content: 'ສະຖານະ'; }
+body.lang-lo .lbl_labelNotes::before       { content: 'ໝາຍເຫດ'; }
+
+/* Trip form placeholders */
+body.lang-lo .lbl_phTripName::before    { content: 'ຕ.ຢ. ຮ້ອນຢູ່ຍີ່ປຸ່ນ'; }
+body.lang-lo .lbl_phDestination::before { content: 'ຕ.ຢ. ໂຕກຽວ, ຍີ່ປຸ່ນ'; }
+body.lang-lo .lbl_phNotes::before       { content: 'ໝາຍເຫດເພີ່ມເຕີມ…'; }
+
+/* Trip delete confirm */
+body.lang-lo .lbl_deleteTripQ::before   { content: 'ລຶບການເດີນທາງ?'; }
+body.lang-lo .lbl_deleteTripBody::before{ content: 'ຈະຖືກລຶບຖາວອນ ບໍ່ສາມາດກູ້ຄືນໄດ້'; }
+
+/* Schedule form labels */
+body.lang-lo .lbl_labelDateTime::before  { content: 'ວັນທີ & ເວລາ'; }
+body.lang-lo .lbl_labelDetail::before    { content: 'ລາຍລະອຽດ'; }
+body.lang-lo .lbl_labelTransport::before { content: 'ການຂົນສົ່ງ'; }
+body.lang-lo .lbl_labelCost::before      { content: 'ຄ່າໃຊ້ຈ່າຍ (฿)'; }
+body.lang-lo .lbl_labelMapLink::before   { content: 'ລິ້ງແຜນທີ່'; }
+body.lang-lo .lbl_labelNote::before      { content: 'ໝາຍເຫດ'; }
+
+/* Schedule form placeholders */
+body.lang-lo .lbl_phDetail::before    { content: 'ຕ.ຢ. ໄປຢ້ຽມວັດ Senso-ji'; }
+body.lang-lo .lbl_phTransport::before { content: 'ຕ.ຢ. BTS → ແທັກຊີ'; }
+body.lang-lo .lbl_phNote::before      { content: 'ໝາຍເຫດເພີ່ມເຕີມ…'; }
+
+/* Schedule delete confirm */
+body.lang-lo .lbl_deleteSchedQ::before { content: 'ລຶບຕາຕະລາງ?'; }
+body.lang-lo .lbl_deleteBody::before   { content: 'ຈະຖືກລຶບຖາວອນ'; }
+
+/* Profile form */
+body.lang-lo .lbl_labelDisplayName::before   { content: 'ຊື່ທີ່ສະແດງ'; }
+body.lang-lo .lbl_phDisplayName::before      { content: 'ຊື່ຂອງທ່ານ'; }
+body.lang-lo .lbl_labelChangePassword::before{ content: 'ປ່ຽນລະຫັດຜ່ານ'; }
+body.lang-lo .lbl_labelCurrentPw::before     { content: 'ລະຫັດຜ່ານປັດຈຸບັນ'; }
+body.lang-lo .lbl_phCurrentPw::before        { content: 'ໃສ່ລະຫັດຜ່ານປັດຈຸບັນ'; }
+body.lang-lo .lbl_labelNewPw::before         { content: 'ລະຫັດຜ່ານໃໝ່'; }
+body.lang-lo .lbl_labelLanguage::before      { content: 'ພາສາ'; }
+
+/* Cancel / Restore */
+body.lang-lo .lbl_cancelTrip::before      { content: 'ຍົກເລີກການເດີນທາງ'; }
+body.lang-lo .lbl_restoreTrip::before     { content: 'ກູ້ຄືນການເດີນທາງ'; }
+body.lang-lo .lbl_cancelledBanner::before { content: 'ການເດີນທາງຖືກໝາຍວ່າຍົກເລີກ — ບັນທຶກເພື່ອໃຊ້ງານ'; }
+</style>

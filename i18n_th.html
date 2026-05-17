@@ -1,0 +1,112 @@
+<style>
+/* ── Thai ─────────────────────────────────────────────────── */
+
+/* Filter pills */
+body.lang-th .lbl_allTrips::before     { content: 'ทั้งหมด'; }
+body.lang-th .lbl_planning::before     { content: 'วางแผน'; }
+body.lang-th .lbl_active::before       { content: 'กำลังเดินทาง'; }
+body.lang-th .lbl_done::before         { content: 'เสร็จแล้ว'; }
+body.lang-th .lbl_cancelled::before    { content: 'ยกเลิก'; }
+
+/* Search */
+body.lang-th .lbl_searchPlaceholder::before { content: 'ค้นหาทริป…'; }
+
+/* Trip CRUD */
+body.lang-th .lbl_addTrip::before      { content: 'เพิ่มทริป'; }
+body.lang-th .lbl_addTripBtn::before   { content: 'เพิ่มทริป'; }
+body.lang-th .lbl_addTripTitle::before { content: 'เพิ่มทริป'; }
+body.lang-th .lbl_editTripTitle::before{ content: 'แก้ไขทริป'; }
+body.lang-th .lbl_saveTrip::before     { content: 'บันทึกทริป'; }
+body.lang-th .lbl_updateTrip::before   { content: 'อัปเดตทริป'; }
+
+/* Card actions */
+body.lang-th .lbl_edit::before         { content: 'แก้ไข'; }
+body.lang-th .lbl_plan::before         { content: 'แผน'; }
+body.lang-th .lbl_delete::before       { content: 'ลบ'; }
+
+/* Schedule CRUD */
+body.lang-th .lbl_addSchedTitle::before  { content: 'เพิ่มกำหนดการ'; }
+body.lang-th .lbl_editSchedTitle::before { content: 'แก้ไขกำหนดการ'; }
+body.lang-th .lbl_update::before         { content: 'อัปเดต'; }
+body.lang-th .lbl_save::before           { content: 'บันทึก'; }
+
+/* Empty / loading */
+body.lang-th .lbl_noTrips::before      { content: 'ไม่พบทริป'; }
+body.lang-th .lbl_noTripsDesc::before  { content: 'เพิ่มทริปแรกหรือล้างตัวกรอง'; }
+body.lang-th .lbl_loading::before      { content: 'กำลังโหลดทริป…'; }
+body.lang-th .lbl_loadingScheds::before{ content: 'กำลังโหลดกำหนดการ…'; }
+body.lang-th .lbl_addSchedule::before  { content: 'เพิ่มกำหนดการแรก'; }
+body.lang-th .lbl_noSchedules::before  { content: 'ยังไม่มีกำหนดการ'; }
+
+/* Header */
+body.lang-th .lbl_users::before        { content: 'ผู้ใช้'; }
+body.lang-th .lbl_myProfile::before    { content: 'โปรไฟล์'; }
+body.lang-th .lbl_signOut::before      { content: 'ออกจากระบบ'; }
+
+/* Profile */
+body.lang-th .lbl_profileTitle::before   { content: 'โปรไฟล์ของฉัน'; }
+body.lang-th .lbl_saveChanges::before    { content: 'บันทึกการเปลี่ยนแปลง'; }
+
+/* Buttons */
+body.lang-th .lbl_cancel::before       { content: 'ยกเลิก'; }
+
+/* Status labels (Select2 options & badges) */
+body.lang-th .lbl_statusAll::before        { content: 'ทุกสถานะ'; }
+body.lang-th .lbl_statusPlanning::before   { content: 'วางแผน'; }
+body.lang-th .lbl_statusActive::before     { content: 'กำลังเดินทาง'; }
+body.lang-th .lbl_statusCompleted::before  { content: 'เสร็จแล้ว'; }
+body.lang-th .lbl_statusCancelled::before  { content: 'ยกเลิก'; }
+body.lang-th .lbl_statusConfirmed::before  { content: 'ยืนยันแล้ว'; }
+body.lang-th .lbl_statusDone::before       { content: 'เสร็จสิ้น'; }
+
+/* Validation */
+body.lang-th .lbl_fillRequired::before { content: 'กรุณากรอกข้อมูลที่จำเป็น'; }
+
+/* Trip form labels */
+body.lang-th .lbl_labelTripName::before    { content: 'ชื่อทริป'; }
+body.lang-th .lbl_labelDestination::before { content: 'ปลายทาง'; }
+body.lang-th .lbl_labelStartDate::before   { content: 'วันเริ่มต้น'; }
+body.lang-th .lbl_labelEndDate::before     { content: 'วันสิ้นสุด'; }
+body.lang-th .lbl_labelStatus::before      { content: 'สถานะ'; }
+body.lang-th .lbl_labelNotes::before       { content: 'หมายเหตุ'; }
+
+/* Trip form placeholders */
+body.lang-th .lbl_phTripName::before    { content: 'เช่น ฤดูร้อนที่ญี่ปุ่น'; }
+body.lang-th .lbl_phDestination::before { content: 'เช่น โตเกียว ประเทศญี่ปุ่น'; }
+body.lang-th .lbl_phNotes::before       { content: 'หมายเหตุเพิ่มเติมเกี่ยวกับทริปนี้…'; }
+
+/* Trip delete confirm */
+body.lang-th .lbl_deleteTripQ::before   { content: 'ลบทริป?'; }
+body.lang-th .lbl_deleteTripBody::before{ content: 'จะถูกลบอย่างถาวร ไม่สามารถย้อนกลับได้'; }
+
+/* Schedule form labels */
+body.lang-th .lbl_labelDateTime::before  { content: 'วันที่ & เวลา'; }
+body.lang-th .lbl_labelDetail::before    { content: 'รายละเอียด'; }
+body.lang-th .lbl_labelTransport::before { content: 'การเดินทาง'; }
+body.lang-th .lbl_labelCost::before      { content: 'ค่าใช้จ่าย (฿)'; }
+body.lang-th .lbl_labelMapLink::before   { content: 'ลิงก์แผนที่'; }
+body.lang-th .lbl_labelNote::before      { content: 'หมายเหตุ'; }
+
+/* Schedule form placeholders */
+body.lang-th .lbl_phDetail::before    { content: 'เช่น ชมวัดเซ็นโซจิ'; }
+body.lang-th .lbl_phTransport::before { content: 'เช่น BTS → แท็กซี่'; }
+body.lang-th .lbl_phNote::before      { content: 'หมายเหตุเพิ่มเติม…'; }
+
+/* Schedule delete confirm */
+body.lang-th .lbl_deleteSchedQ::before { content: 'ลบกำหนดการ?'; }
+body.lang-th .lbl_deleteBody::before   { content: 'จะถูกลบอย่างถาวร'; }
+
+/* Profile form */
+body.lang-th .lbl_labelDisplayName::before   { content: 'ชื่อที่แสดง'; }
+body.lang-th .lbl_phDisplayName::before      { content: 'ชื่อของคุณ'; }
+body.lang-th .lbl_labelChangePassword::before{ content: 'เปลี่ยนรหัสผ่าน'; }
+body.lang-th .lbl_labelCurrentPw::before     { content: 'รหัสผ่านปัจจุบัน'; }
+body.lang-th .lbl_phCurrentPw::before        { content: 'ใส่รหัสผ่านปัจจุบัน'; }
+body.lang-th .lbl_labelNewPw::before         { content: 'รหัสผ่านใหม่'; }
+body.lang-th .lbl_labelLanguage::before      { content: 'ภาษา'; }
+
+/* Cancel / Restore */
+body.lang-th .lbl_cancelTrip::before      { content: 'ยกเลิกทริป'; }
+body.lang-th .lbl_restoreTrip::before     { content: 'กู้คืนทริป'; }
+body.lang-th .lbl_cancelledBanner::before { content: 'ทริปถูกทำเครื่องหมายยกเลิก — บันทึกเพื่อใช้งาน'; }
+</style>

@@ -1,0 +1,112 @@
+<style>
+/* ── Japanese ─────────────────────────────────────────────── */
+
+/* Filter pills */
+body.lang-ja .lbl_allTrips::before     { content: 'すべて'; }
+body.lang-ja .lbl_planning::before     { content: '計画中'; }
+body.lang-ja .lbl_active::before       { content: '旅行中'; }
+body.lang-ja .lbl_done::before         { content: '完了'; }
+body.lang-ja .lbl_cancelled::before    { content: 'キャンセル'; }
+
+/* Search */
+body.lang-ja .lbl_searchPlaceholder::before { content: '旅行を検索…'; }
+
+/* Trip CRUD */
+body.lang-ja .lbl_addTrip::before      { content: '旅行を追加'; }
+body.lang-ja .lbl_addTripBtn::before   { content: '追加'; }
+body.lang-ja .lbl_addTripTitle::before { content: '旅行を追加'; }
+body.lang-ja .lbl_editTripTitle::before{ content: '旅行を編集'; }
+body.lang-ja .lbl_saveTrip::before     { content: '保存'; }
+body.lang-ja .lbl_updateTrip::before   { content: '更新'; }
+
+/* Card actions */
+body.lang-ja .lbl_edit::before         { content: '編集'; }
+body.lang-ja .lbl_plan::before         { content: '計画'; }
+body.lang-ja .lbl_delete::before       { content: '削除'; }
+
+/* Schedule CRUD */
+body.lang-ja .lbl_addSchedTitle::before  { content: 'スケジュールを追加'; }
+body.lang-ja .lbl_editSchedTitle::before { content: 'スケジュールを編集'; }
+body.lang-ja .lbl_update::before         { content: '更新'; }
+body.lang-ja .lbl_save::before           { content: '保存'; }
+
+/* Empty / loading */
+body.lang-ja .lbl_noTrips::before      { content: '旅行が見つかりません'; }
+body.lang-ja .lbl_noTripsDesc::before  { content: '最初の旅行を追加するか、フィルターをクリアしてください。'; }
+body.lang-ja .lbl_loading::before      { content: '旅行を読み込み中…'; }
+body.lang-ja .lbl_loadingScheds::before{ content: 'スケジュールを読み込み中…'; }
+body.lang-ja .lbl_addSchedule::before  { content: '最初のスケジュールを追加'; }
+body.lang-ja .lbl_noSchedules::before  { content: 'スケジュールはまだありません'; }
+
+/* Header */
+body.lang-ja .lbl_users::before        { content: 'ユーザー'; }
+body.lang-ja .lbl_myProfile::before    { content: 'プロフィール'; }
+body.lang-ja .lbl_signOut::before      { content: 'サインアウト'; }
+
+/* Profile */
+body.lang-ja .lbl_profileTitle::before   { content: 'マイプロフィール'; }
+body.lang-ja .lbl_saveChanges::before    { content: '変更を保存'; }
+
+/* Buttons */
+body.lang-ja .lbl_cancel::before       { content: 'キャンセル'; }
+
+/* Status labels (Select2 options & badges) */
+body.lang-ja .lbl_statusAll::before        { content: 'すべてのステータス'; }
+body.lang-ja .lbl_statusPlanning::before   { content: '計画中'; }
+body.lang-ja .lbl_statusActive::before     { content: '旅行中'; }
+body.lang-ja .lbl_statusCompleted::before  { content: '完了'; }
+body.lang-ja .lbl_statusCancelled::before  { content: 'キャンセル'; }
+body.lang-ja .lbl_statusConfirmed::before  { content: '確認済み'; }
+body.lang-ja .lbl_statusDone::before       { content: '終了'; }
+
+/* Validation */
+body.lang-ja .lbl_fillRequired::before { content: '必須項目を入力してください'; }
+
+/* Trip form labels */
+body.lang-ja .lbl_labelTripName::before    { content: '旅行名'; }
+body.lang-ja .lbl_labelDestination::before { content: '目的地'; }
+body.lang-ja .lbl_labelStartDate::before   { content: '開始日'; }
+body.lang-ja .lbl_labelEndDate::before     { content: '終了日'; }
+body.lang-ja .lbl_labelStatus::before      { content: 'ステータス'; }
+body.lang-ja .lbl_labelNotes::before       { content: 'メモ'; }
+
+/* Trip form placeholders */
+body.lang-ja .lbl_phTripName::before    { content: '例：日本の夏旅'; }
+body.lang-ja .lbl_phDestination::before { content: '例：東京、日本'; }
+body.lang-ja .lbl_phNotes::before       { content: 'この旅行についてのメモ…'; }
+
+/* Trip delete confirm */
+body.lang-ja .lbl_deleteTripQ::before   { content: '旅行を削除?'; }
+body.lang-ja .lbl_deleteTripBody::before{ content: 'は永久に削除されます。元に戻せません。'; }
+
+/* Schedule form labels */
+body.lang-ja .lbl_labelDateTime::before  { content: '日時'; }
+body.lang-ja .lbl_labelDetail::before    { content: '詳細'; }
+body.lang-ja .lbl_labelTransport::before { content: '交通手段'; }
+body.lang-ja .lbl_labelCost::before      { content: '費用 (฿)'; }
+body.lang-ja .lbl_labelMapLink::before   { content: 'マップリンク'; }
+body.lang-ja .lbl_labelNote::before      { content: 'ノート'; }
+
+/* Schedule form placeholders */
+body.lang-ja .lbl_phDetail::before    { content: '例：浅草寺を訪問'; }
+body.lang-ja .lbl_phTransport::before { content: '例：BTS → タクシー'; }
+body.lang-ja .lbl_phNote::before      { content: '追加メモ…'; }
+
+/* Schedule delete confirm */
+body.lang-ja .lbl_deleteSchedQ::before { content: 'スケジュールを削除?'; }
+body.lang-ja .lbl_deleteBody::before   { content: 'は永久に削除されます。'; }
+
+/* Profile form */
+body.lang-ja .lbl_labelDisplayName::before   { content: '表示名'; }
+body.lang-ja .lbl_phDisplayName::before      { content: '表示名を入力'; }
+body.lang-ja .lbl_labelChangePassword::before{ content: 'パスワード変更'; }
+body.lang-ja .lbl_labelCurrentPw::before     { content: '現在のパスワード'; }
+body.lang-ja .lbl_phCurrentPw::before        { content: '現在のパスワードを入力'; }
+body.lang-ja .lbl_labelNewPw::before         { content: '新しいパスワード'; }
+body.lang-ja .lbl_labelLanguage::before      { content: '言語'; }
+
+/* Cancel / Restore */
+body.lang-ja .lbl_cancelTrip::before      { content: '旅行をキャンセル'; }
+body.lang-ja .lbl_restoreTrip::before     { content: '旅行を再開'; }
+body.lang-ja .lbl_cancelledBanner::before { content: '旅行はキャンセル済みです — 保存して適用'; }
+</style>

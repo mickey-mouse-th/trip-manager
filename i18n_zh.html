@@ -1,0 +1,112 @@
+<style>
+/* ── Chinese (Simplified) ─────────────────────────────────── */
+
+/* Filter pills */
+body.lang-zh .lbl_allTrips::before     { content: '全部'; }
+body.lang-zh .lbl_planning::before     { content: '计划中'; }
+body.lang-zh .lbl_active::before       { content: '进行中'; }
+body.lang-zh .lbl_done::before         { content: '已完成'; }
+body.lang-zh .lbl_cancelled::before    { content: '已取消'; }
+
+/* Search */
+body.lang-zh .lbl_searchPlaceholder::before { content: '搜索行程…'; }
+
+/* Trip CRUD */
+body.lang-zh .lbl_addTrip::before      { content: '添加行程'; }
+body.lang-zh .lbl_addTripBtn::before   { content: '添加'; }
+body.lang-zh .lbl_addTripTitle::before { content: '添加行程'; }
+body.lang-zh .lbl_editTripTitle::before{ content: '编辑行程'; }
+body.lang-zh .lbl_saveTrip::before     { content: '保存'; }
+body.lang-zh .lbl_updateTrip::before   { content: '更新'; }
+
+/* Card actions */
+body.lang-zh .lbl_edit::before         { content: '编辑'; }
+body.lang-zh .lbl_plan::before         { content: '计划'; }
+body.lang-zh .lbl_delete::before       { content: '删除'; }
+
+/* Schedule CRUD */
+body.lang-zh .lbl_addSchedTitle::before  { content: '添加日程'; }
+body.lang-zh .lbl_editSchedTitle::before { content: '编辑日程'; }
+body.lang-zh .lbl_update::before         { content: '更新'; }
+body.lang-zh .lbl_save::before           { content: '保存'; }
+
+/* Empty / loading */
+body.lang-zh .lbl_noTrips::before      { content: '未找到行程'; }
+body.lang-zh .lbl_noTripsDesc::before  { content: '添加您的第一个行程或清除筛选器。'; }
+body.lang-zh .lbl_loading::before      { content: '正在加载行程…'; }
+body.lang-zh .lbl_loadingScheds::before{ content: '正在加载日程…'; }
+body.lang-zh .lbl_addSchedule::before  { content: '添加第一个日程'; }
+body.lang-zh .lbl_noSchedules::before  { content: '暂无日程'; }
+
+/* Header */
+body.lang-zh .lbl_users::before        { content: '用户'; }
+body.lang-zh .lbl_myProfile::before    { content: '个人资料'; }
+body.lang-zh .lbl_signOut::before      { content: '退出'; }
+
+/* Profile */
+body.lang-zh .lbl_profileTitle::before   { content: '我的资料'; }
+body.lang-zh .lbl_saveChanges::before    { content: '保存更改'; }
+
+/* Buttons */
+body.lang-zh .lbl_cancel::before       { content: '取消'; }
+
+/* Status labels (Select2 options & badges) */
+body.lang-zh .lbl_statusAll::before        { content: '所有状态'; }
+body.lang-zh .lbl_statusPlanning::before   { content: '计划中'; }
+body.lang-zh .lbl_statusActive::before     { content: '进行中'; }
+body.lang-zh .lbl_statusCompleted::before  { content: '已完成'; }
+body.lang-zh .lbl_statusCancelled::before  { content: '已取消'; }
+body.lang-zh .lbl_statusConfirmed::before  { content: '已确认'; }
+body.lang-zh .lbl_statusDone::before       { content: '已结束'; }
+
+/* Validation */
+body.lang-zh .lbl_fillRequired::before { content: '请填写必填项'; }
+
+/* Trip form labels */
+body.lang-zh .lbl_labelTripName::before    { content: '行程名'; }
+body.lang-zh .lbl_labelDestination::before { content: '目的地'; }
+body.lang-zh .lbl_labelStartDate::before   { content: '开始日期'; }
+body.lang-zh .lbl_labelEndDate::before     { content: '结束日期'; }
+body.lang-zh .lbl_labelStatus::before      { content: '状态'; }
+body.lang-zh .lbl_labelNotes::before       { content: '备注'; }
+
+/* Trip form placeholders */
+body.lang-zh .lbl_phTripName::before    { content: '例：日本夏日之旅'; }
+body.lang-zh .lbl_phDestination::before { content: '例：东京，日本'; }
+body.lang-zh .lbl_phNotes::before       { content: '关于此行程的备注…'; }
+
+/* Trip delete confirm */
+body.lang-zh .lbl_deleteTripQ::before   { content: '删除行程?'; }
+body.lang-zh .lbl_deleteTripBody::before{ content: '将被永久删除。此操作无法撤销。'; }
+
+/* Schedule form labels */
+body.lang-zh .lbl_labelDateTime::before  { content: '日期和时间'; }
+body.lang-zh .lbl_labelDetail::before    { content: '详情'; }
+body.lang-zh .lbl_labelTransport::before { content: '交通方式'; }
+body.lang-zh .lbl_labelCost::before      { content: '费用 (฿)'; }
+body.lang-zh .lbl_labelMapLink::before   { content: '地图链接'; }
+body.lang-zh .lbl_labelNote::before      { content: '备注'; }
+
+/* Schedule form placeholders */
+body.lang-zh .lbl_phDetail::before    { content: '例：参观浅草寺'; }
+body.lang-zh .lbl_phTransport::before { content: '例：BTS → 出租车'; }
+body.lang-zh .lbl_phNote::before      { content: '额外备注…'; }
+
+/* Schedule delete confirm */
+body.lang-zh .lbl_deleteSchedQ::before { content: '删除日程?'; }
+body.lang-zh .lbl_deleteBody::before   { content: '将被永久删除。'; }
+
+/* Profile form */
+body.lang-zh .lbl_labelDisplayName::before   { content: '显示名称'; }
+body.lang-zh .lbl_phDisplayName::before      { content: '您的显示名称'; }
+body.lang-zh .lbl_labelChangePassword::before{ content: '修改密码'; }
+body.lang-zh .lbl_labelCurrentPw::before     { content: '当前密码'; }
+body.lang-zh .lbl_phCurrentPw::before        { content: '输入当前密码'; }
+body.lang-zh .lbl_labelNewPw::before         { content: '新密码'; }
+body.lang-zh .lbl_labelLanguage::before      { content: '语言'; }
+
+/* Cancel / Restore */
+body.lang-zh .lbl_cancelTrip::before      { content: '取消行程'; }
+body.lang-zh .lbl_restoreTrip::before     { content: '恢复行程'; }
+body.lang-zh .lbl_cancelledBanner::before { content: '行程已标记为取消 — 保存以应用'; }
+</style>

@@ -1,0 +1,112 @@
+<style>
+/* ── English ─────────────────────────────────────────────── */
+
+/* Filter pills */
+body.lang-en .lbl_allTrips::before     { content: 'All'; }
+body.lang-en .lbl_planning::before     { content: 'Planning'; }
+body.lang-en .lbl_active::before       { content: 'Active'; }
+body.lang-en .lbl_done::before         { content: 'Done'; }
+body.lang-en .lbl_cancelled::before    { content: 'Cancelled'; }
+
+/* Search */
+body.lang-en .lbl_searchPlaceholder::before { content: 'Search trips…'; }
+
+/* Trip CRUD */
+body.lang-en .lbl_addTrip::before      { content: 'New Trip'; }
+body.lang-en .lbl_addTripBtn::before   { content: 'Add Trip'; }
+body.lang-en .lbl_addTripTitle::before { content: 'Add Trip'; }
+body.lang-en .lbl_editTripTitle::before{ content: 'Edit Trip'; }
+body.lang-en .lbl_saveTrip::before     { content: 'Save Trip'; }
+body.lang-en .lbl_updateTrip::before   { content: 'Update Trip'; }
+
+/* Card actions */
+body.lang-en .lbl_edit::before         { content: 'Edit'; }
+body.lang-en .lbl_plan::before         { content: 'Plan'; }
+body.lang-en .lbl_delete::before       { content: 'Delete'; }
+
+/* Schedule CRUD */
+body.lang-en .lbl_addSchedTitle::before  { content: 'Add Schedule'; }
+body.lang-en .lbl_editSchedTitle::before { content: 'Edit Schedule'; }
+body.lang-en .lbl_update::before         { content: 'Update'; }
+body.lang-en .lbl_save::before           { content: 'Save'; }
+
+/* Empty / loading */
+body.lang-en .lbl_noTrips::before      { content: 'No trips found'; }
+body.lang-en .lbl_noTripsDesc::before  { content: 'Add your first trip or clear the filters.'; }
+body.lang-en .lbl_loading::before      { content: 'Loading your trips…'; }
+body.lang-en .lbl_loadingScheds::before{ content: 'Loading schedules…'; }
+body.lang-en .lbl_addSchedule::before  { content: 'Add First Schedule'; }
+body.lang-en .lbl_noSchedules::before  { content: 'No schedules yet'; }
+
+/* Header */
+body.lang-en .lbl_users::before        { content: 'Users'; }
+body.lang-en .lbl_myProfile::before    { content: 'My Profile'; }
+body.lang-en .lbl_signOut::before      { content: 'Sign Out'; }
+
+/* Profile */
+body.lang-en .lbl_profileTitle::before   { content: 'My Profile'; }
+body.lang-en .lbl_saveChanges::before    { content: 'Save Changes'; }
+
+/* Buttons */
+body.lang-en .lbl_cancel::before       { content: 'Cancel'; }
+
+/* Status labels (Select2 options & badges) */
+body.lang-en .lbl_statusAll::before        { content: 'All Status'; }
+body.lang-en .lbl_statusPlanning::before   { content: 'Planning'; }
+body.lang-en .lbl_statusActive::before     { content: 'Active'; }
+body.lang-en .lbl_statusCompleted::before  { content: 'Completed'; }
+body.lang-en .lbl_statusCancelled::before  { content: 'Cancelled'; }
+body.lang-en .lbl_statusConfirmed::before  { content: 'Confirmed'; }
+body.lang-en .lbl_statusDone::before       { content: 'Done'; }
+
+/* Validation */
+body.lang-en .lbl_fillRequired::before { content: 'Please fill required fields'; }
+
+/* Trip form labels */
+body.lang-en .lbl_labelTripName::before    { content: 'Trip Name'; }
+body.lang-en .lbl_labelDestination::before { content: 'Destination'; }
+body.lang-en .lbl_labelStartDate::before   { content: 'Start Date'; }
+body.lang-en .lbl_labelEndDate::before     { content: 'End Date'; }
+body.lang-en .lbl_labelStatus::before      { content: 'Status'; }
+body.lang-en .lbl_labelNotes::before       { content: 'Notes'; }
+
+/* Trip form placeholders (read by JS via getLabel) */
+body.lang-en .lbl_phTripName::before    { content: 'e.g. Summer in Japan'; }
+body.lang-en .lbl_phDestination::before { content: 'e.g. Tokyo, Japan'; }
+body.lang-en .lbl_phNotes::before       { content: 'Any notes about this trip…'; }
+
+/* Trip delete confirm */
+body.lang-en .lbl_deleteTripQ::before   { content: 'Delete Trip?'; }
+body.lang-en .lbl_deleteTripBody::before{ content: 'will be permanently deleted. This cannot be undone.'; }
+
+/* Schedule form labels */
+body.lang-en .lbl_labelDateTime::before  { content: 'Date & Time'; }
+body.lang-en .lbl_labelDetail::before    { content: 'Detail'; }
+body.lang-en .lbl_labelTransport::before { content: 'Transport'; }
+body.lang-en .lbl_labelCost::before      { content: 'Cost (฿)'; }
+body.lang-en .lbl_labelMapLink::before   { content: 'Map Link'; }
+body.lang-en .lbl_labelNote::before      { content: 'Note'; }
+
+/* Schedule form placeholders (read by JS via getLabel) */
+body.lang-en .lbl_phDetail::before    { content: 'e.g. Visit Senso-ji Temple'; }
+body.lang-en .lbl_phTransport::before { content: 'e.g. BTS → Taxi'; }
+body.lang-en .lbl_phNote::before      { content: 'Additional notes…'; }
+
+/* Schedule delete confirm */
+body.lang-en .lbl_deleteSchedQ::before { content: 'Delete Schedule?'; }
+body.lang-en .lbl_deleteBody::before   { content: 'will be permanently deleted.'; }
+
+/* Profile form */
+body.lang-en .lbl_labelDisplayName::before   { content: 'Display Name'; }
+body.lang-en .lbl_phDisplayName::before      { content: 'Your display name'; }
+body.lang-en .lbl_labelChangePassword::before{ content: 'Change Password'; }
+body.lang-en .lbl_labelCurrentPw::before     { content: 'Current Password'; }
+body.lang-en .lbl_phCurrentPw::before        { content: 'Enter current password'; }
+body.lang-en .lbl_labelNewPw::before         { content: 'New Password'; }
+body.lang-en .lbl_labelLanguage::before      { content: 'Language'; }
+
+/* Cancel / Restore */
+body.lang-en .lbl_cancelTrip::before      { content: 'Cancel Trip'; }
+body.lang-en .lbl_restoreTrip::before     { content: 'Restore Trip'; }
+body.lang-en .lbl_cancelledBanner::before { content: 'Trip marked as Cancelled — save to apply'; }
+</style>
