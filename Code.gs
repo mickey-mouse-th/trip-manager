@@ -6,8 +6,18 @@ const SCHED_HEADERS = ['ID', 'TripID', 'DateTime', 'Detail', 'Transport', 'Cost'
 
 const CACHE_TTL = 300; // 5-minute safety-net TTL (writes always clear immediately)
 
+// ─── Spreadsheet instance cache (per execution) ───────────────────────────────
+// getActiveSpreadsheet() costs ~200 ms each call — reuse within same execution.
+let _ss = null;
+function _getSpreadsheet() {
+  if (!_ss) _ss = SpreadsheetApp.getActiveSpreadsheet();
+  return _ss;
+}
 
 function doGet() {
+  // Pre-warm CacheService while the HTML template is being built so the first
+  // client-side getAppData() call hits cache instead of reading Sheets cold.
+  try { getTrips(); getAllSchedules(); } catch (e) {}
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
     .setTitle('Trip Manager')
@@ -25,7 +35,7 @@ function _cache() { return CacheService.getScriptCache(); }
 // ─── Trips sheet ──────────────────────────────────────────────────────────────
 
 function getSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = _getSpreadsheet();
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
@@ -96,7 +106,7 @@ function deleteTrip(id) {
 // ─── Schedules sheet ──────────────────────────────────────────────────────────
 
 function getSchedSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = _getSpreadsheet();
   let sheet = ss.getSheetByName(SCHED_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(SCHED_SHEET);
@@ -133,6 +143,35 @@ function getSchedulesByTripId(tripId) {
   return list;
 }
 
+// Returns ALL schedules across all trips (used by getAppData batch call)
+function getAllSchedules() {
+  const cached = _cache().get('scheds-all');
+  if (cached) return JSON.parse(cached);
+
+  const sheet = getSchedSheet();
+  const data  = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  const tz   = Session.getScriptTimeZone();
+  const list = data.slice(1).map(row => ({
+    id:        row[0],
+    tripId:    row[1],
+    dateTime:  row[2] ? Utilities.formatDate(new Date(row[2]), tz, "yyyy-MM-dd'T'HH:mm") : '',
+    detail:    row[3],
+    transport: row[4],
+    cost:      row[5],
+    map:       row[6],
+    note:      row[7],
+    status:    row[8],
+  }));
+  _cache().put('scheds-all', JSON.stringify(list), CACHE_TTL);
+  return list;
+}
+
+// Single batch endpoint — one round trip replaces two separate calls
+function getAppData() {
+  return { trips: getTrips(), schedules: getAllSchedules() };
+}
+
 function addSchedule(schedule) {
   const sheet = getSchedSheet();
   const id    = 'SCHED-' + Date.now();
@@ -141,7 +180,7 @@ function addSchedule(schedule) {
     schedule.transport || '', schedule.cost || '', schedule.map || '',
     schedule.note || '', schedule.status,
   ]);
-  _cache().remove('scheds-' + schedule.tripId);
+  _cache().removeAll(['scheds-' + schedule.tripId, 'scheds-all']);
   return { success: true, id };
 }
 
@@ -155,7 +194,7 @@ function updateSchedule(schedule) {
         schedule.transport || '', schedule.cost || '', schedule.map || '',
         schedule.note || '', schedule.status,
       ]]);
-      _cache().remove('scheds-' + schedule.tripId);
+      _cache().removeAll(['scheds-' + schedule.tripId, 'scheds-all']);
       return { success: true };
     }
   }
@@ -169,7 +208,7 @@ function deleteSchedule(id) {
     if (data[i][0] === id) {
       const tripId = data[i][1];
       sheet.deleteRow(i + 1);
-      _cache().remove('scheds-' + tripId);
+      _cache().removeAll(['scheds-' + tripId, 'scheds-all']);
       return { success: true };
     }
   }
@@ -182,7 +221,7 @@ const USERS_SHEET   = 'Users';
 const USERS_HEADERS = ['ID', 'Name', 'Password', 'Salt', 'Role', 'CreatedAt', 'UpdatedAt', 'LastLoginAt', 'CreatedBy', 'IsActive', 'Email', 'AuthMethod', 'Lang'];
 
 function getUsersSheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = _getSpreadsheet();
   let sheet = ss.getSheetByName(USERS_SHEET);
   if (!sheet) {
     sheet = ss.insertSheet(USERS_SHEET);

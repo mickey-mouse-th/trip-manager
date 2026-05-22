@@ -98,6 +98,15 @@
         withSuccessHandler: function (fn) { _ok  = fn; return r; },
         withFailureHandler: function (fn) { _err = fn; return r; },
 
+        // ── Batch ──
+        getAppData: function () {
+          setTimeout(function () {
+            var scheds = loadScheds();
+            scheds.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+            _ok && _ok({ trips: loadTrips(), schedules: scheds });
+          }, 300);
+        },
+
         // ── Trips ──
         getTrips: function () {
           setTimeout(function () { _ok && _ok(loadTrips()); }, 300);
@@ -295,6 +304,7 @@
   // ── State ────────────────────────────────────────────────
   var currentUser     = null;
   var allTrips        = [];
+  var _schedsCache    = null; // map tripId → schedule[] pre-loaded by getAppData
   var editingId       = null;
   var pendingDeleteId = null;
   var activeFilter    = '';
@@ -678,9 +688,15 @@
     $emptyState.addClass('hidden');
     $loadingState.removeClass('hidden');
     google.script.run
-      .withSuccessHandler(function (trips) {
-        // Normalize — recompute status from dates (Cancelled preserved as-is)
-        allTrips = $.map(trips, function (t) {
+      .withSuccessHandler(function (data) {
+        // Build schedules cache keyed by tripId for instant schedule-sheet open
+        _schedsCache = {};
+        $.each(data.schedules, function (_, s) {
+          if (!_schedsCache[s.tripId]) _schedsCache[s.tripId] = [];
+          _schedsCache[s.tripId].push(s);
+        });
+        // Normalize trips — recompute status from dates (Cancelled preserved)
+        allTrips = $.map(data.trips, function (t) {
           return $.extend({}, t, { status: computeTripStatus(t) });
         });
         $loadingState.addClass('hidden');
@@ -691,7 +707,7 @@
         $loadingState.addClass('hidden');
         showToast('Failed to load trips: ' + err.message, 'error');
       })
-      .getTrips();
+      .getAppData();
   }
 
   // ── Render ────────────────────────────────────────────────
@@ -1064,19 +1080,29 @@
     $('#schedule-trip-dest').text(trip.destination);
     $('#schedule-list').empty();
     $('#schedule-empty').addClass('hidden');
-    $('#schedule-loading').removeClass('hidden');
     openSheet('#schedule-sheet', '#schedule-backdrop');
-    google.script.run
-      .withSuccessHandler(function (list) {
-        allSchedules = list;
-        $('#schedule-loading').addClass('hidden');
-        renderSchedules();
-      })
-      .withFailureHandler(function (err) {
-        $('#schedule-loading').addClass('hidden');
-        showToast('Failed to load schedules: ' + err.message, 'error');
-      })
-      .getSchedulesByTripId(trip.id);
+
+    // Use pre-loaded cache from getAppData() — no extra round trip needed
+    if (_schedsCache && _schedsCache[trip.id] !== undefined) {
+      allSchedules = _schedsCache[trip.id].slice();
+      allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+      renderSchedules();
+    } else {
+      // Fallback: cache miss — fetch from server
+      $('#schedule-loading').removeClass('hidden');
+      google.script.run
+        .withSuccessHandler(function (list) {
+          allSchedules = list;
+          if (_schedsCache) _schedsCache[trip.id] = list.slice();
+          $('#schedule-loading').addClass('hidden');
+          renderSchedules();
+        })
+        .withFailureHandler(function (err) {
+          $('#schedule-loading').addClass('hidden');
+          showToast('Failed to load schedules: ' + err.message, 'error');
+        })
+        .getSchedulesByTripId(trip.id);
+    }
   }
 
   function closeScheduleSheet() {
@@ -1274,7 +1300,10 @@
             allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
             renderSchedules();
             showToast(res.error || 'Update failed', 'error');
-          } else { showToast('Schedule updated', 'success'); }
+          } else {
+            if (_schedsCache) _schedsCache[sched.tripId] = allSchedules.slice();
+            showToast('Schedule updated', 'success');
+          }
         })
         .withFailureHandler(function (err) {
           if (idx !== -1 && snapshot) allSchedules[idx] = snapshot;
@@ -1302,6 +1331,7 @@
           } else {
             if (ti !== -1) allSchedules[ti].id = res.id;
             allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
+            if (_schedsCache) _schedsCache[sched.tripId] = allSchedules.slice();
             renderSchedules();
             showToast('Schedule added', 'success');
           }
@@ -1349,7 +1379,10 @@
           allSchedules.sort(function (a, b) { return a.dateTime < b.dateTime ? -1 : 1; });
           renderSchedules();
           showToast(res.error || 'Delete failed', 'error');
-        } else { showToast('Schedule deleted', 'success'); }
+        } else {
+          if (_schedsCache && currentTrip) _schedsCache[currentTrip.id] = allSchedules.slice();
+          showToast('Schedule deleted', 'success');
+        }
       })
       .withFailureHandler(function (err) {
         allSchedules = allSchedules.concat(removed);
