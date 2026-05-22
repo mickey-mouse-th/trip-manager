@@ -596,6 +596,7 @@
   .login-sub strong { color: rgba(255,255,255,.7); }
 
   /* Form fields inside login */
+  .login-box form { display: flex; flex-direction: column; gap: 16px; }
   .login-box .form-group { gap: 6px; }
   .login-box .form-label {
     font-size: 11px; font-weight: 700;
@@ -904,6 +905,9 @@
 
   /* ── Utils ───────────────────────────────────────────── */
   .hidden { display: none !important; }
+
+  /* Hide everything during initial auth check — prevents flash of trip list */
+  .app-booting { visibility: hidden; }
 
   /* Search highlight */
   .search-hl {

@@ -1782,6 +1782,7 @@
     if (localStorage.getItem('dev_mock') === '1') setupMock();
     bindAuthEvents();
     var saved = localStorage.getItem('tm_user');
+    $('body').removeClass('app-booting');
     if (saved) {
       try {
         currentUser = JSON.parse(saved);
