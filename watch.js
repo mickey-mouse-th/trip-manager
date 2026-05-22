@@ -13,9 +13,9 @@ function build() {
     const script = fs.readFileSync(path.join(dir, 'Script.html'), 'utf8');
     const login  = fs.readFileSync(path.join(dir, 'Login.html'),  'utf8');
     let   html   = fs.readFileSync(path.join(dir, 'Index.html'),  'utf8');
-    html = html.replace("<?!= include('Style') ?>",  style);
-    html = html.replace("<?!= include('Script') ?>", script);
-    html = html.replace("<?!= include('Login') ?>",  login);
+    html = html.replace("<?!= include('Style') ?>",  () => style);
+    html = html.replace("<?!= include('Script') ?>", () => script);
+    html = html.replace("<?!= include('Login') ?>",  () => login);
     fs.writeFileSync(path.join(dir, 'preview.html'), html, 'utf8');
     console.log('[' + new Date().toLocaleTimeString() + '] ✅ rebuilt preview.html');
   } catch (e) {
