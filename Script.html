@@ -301,6 +301,9 @@
 
   var cancelledState = false;   // tracks manual Cancel toggle in edit form
 
+  // Flatpickr instances
+  var fpStart, fpEnd, fpSchedDate;
+
   // Schedule state
   var currentTrip       = null;
   var allSchedules      = [];
@@ -363,16 +366,37 @@
     ]);
   }
 
+  // Lazily resolved Select2 Utils module (accessed via AMD shim bundled in the
+  // non-AMD CDN build).  Gives us RemoveData() to purge Select2's internal
+  // __cache so option text changes are reflected immediately in both the closed
+  // container label and the open dropdown list.
+  var _s2Utils = null;
+  function _getS2Utils() {
+    if (_s2Utils) return _s2Utils;
+    try { _s2Utils = $.fn.select2.amd.require('select2/utils'); } catch (e) {}
+    return _s2Utils;
+  }
+
   function updateSelectOptions(selector, pairs) {
     var $sel = $(selector);
     if (!$sel.length) return;
     var current = $sel.val();
+    var Utils = _getS2Utils();
     $.each(pairs, function (_, p) {
-      $sel.find('option[value="' + p.val + '"]').text(getLabel(p.key));
+      var $opt = $sel.find('option[value="' + p.val + '"]');
+      $opt.text(getLabel(p.key));
+      // Clear Select2 4.0.x internal __cache for this option node so both the
+      // closed-state label and the open dropdown list re-read text from the DOM.
+      if (Utils) { try { Utils.RemoveData($opt[0]); } catch (e) {} }
+      $opt.removeData('data'); // fallback for builds that use jQuery data
     });
-    // Use 'change' (not 'change.select2') so Select2 re-reads the DOM option
-    // text instead of serving its stale internal data cache.
     $sel.val(current).trigger('change');
+    // Direct patch on the rendered container as a final safety net.
+    var id = $sel.attr('id');
+    if (id) {
+      var label = $sel.find(':selected').text() || '';
+      $('#select2-' + id + '-container').text(label).prop('title', label);
+    }
   }
 
   // ── Status computation ────────────────────────────────────
@@ -408,6 +432,7 @@
   // ── Init ─────────────────────────────────────────────────
   function init() {
     initSelect2();
+    initDatePickers();
     bindEvents();
     loadTrips();
   }
@@ -427,6 +452,133 @@
     // #sf-status is inside #sched-form-sheet which starts hidden (display:none).
     // Select2 can't compute dimensions on a hidden element — init lazily in
     // openSchedForm() on first open instead.
+  }
+
+  // ── Flatpickr ─────────────────────────────────────────────
+
+  // Build custom month + year Select2 dropdowns inside the Flatpickr header.
+  // We create our own <select> elements so we control navigation via
+  // fp.jumpToDate() — avoiding conflicts with Flatpickr's native listeners.
+  var _fpDropdownIdx = 0;
+  function _initFpDropdowns(fp) {
+    var $curMonth = $(fp.calendarContainer).find('.flatpickr-current-month');
+    $curMonth.empty();  // replace default header
+
+    // Give each calendar instance unique ids so Select2 can build its container IDs
+    var uid = ++_fpDropdownIdx;
+    var mId = 'fp-month-sel-' + uid;
+    var yId = 'fp-year-sel-'  + uid;
+
+    // Month select
+    var $mSel = $('<select>').addClass('fp-month-select').attr({ id: mId, name: mId });
+    fp.l10n.months.longhand.forEach(function (name, i) {
+      $mSel.append($('<option>').val(i).text(name).prop('selected', i === fp.currentMonth));
+    });
+
+    // Year select (range: currentYear−5 … currentYear+10)
+    var curY = fp.currentYear;
+    var $ySel = $('<select>').addClass('fp-year-select').attr({ id: yId, name: yId });
+    for (var y = curY - 5; y <= curY + 10; y++) {
+      $ySel.append($('<option>').val(y).text(y).prop('selected', y === curY));
+    }
+
+    $curMonth.append($mSel, $ySel);
+
+    var s2base = { minimumResultsForSearch: Infinity, dropdownParent: $(document.body) };
+
+    // Problem 1: Flatpickr binds document.addEventListener('mousedown', documentClick) and
+    //   calls fp.close() when the click target is outside calendarContainer.
+    //   The Select2 container IS inside calendarContainer so its mousedown is fine,
+    //   but the Select2 *dropdown list* is appended to <body> — outside.
+    //   Fix: stopPropagation on mousedown at the Select2 container level (fires before
+    //   the event reaches document, so Flatpickr never sees it).
+    //   For dropdown-list clicks we delegate on document.body (stops before document).
+    // Problem 2: Flatpickr's built-in CSS sets z-index:99999; Select2 dropdown is 1051 —
+    //   so the dropdown list renders *behind* the calendar. Fix is in Style.html.
+
+    // dropdownCssClass requires the compat module (not in CDN build).
+    // Instead, add the class via select2:open after the dropdown is in the DOM.
+    function _tagDropdown($sel) {
+      var id = $sel.attr('id');
+      $('#select2-' + id + '-results').closest('.select2-dropdown').addClass('fp-s2-dropdown');
+    }
+
+    $mSel.select2($.extend({}, s2base, { width: '148px' }));
+    $mSel.next('.select2').addClass('fp-month-s2').css('width', '148px')
+      .on('mousedown', function (e) { e.stopPropagation(); });
+    $mSel
+      .on('select2:open',    function () { _tagDropdown($mSel); })
+      .on('select2:opening', function () { if ($ySel.data('select2')) $ySel.select2('close'); })
+      .on('change', function () {
+        var newM = parseInt($(this).val());
+        if (newM !== fp.currentMonth) fp.jumpToDate(new Date(fp.currentYear, newM, 1));
+      });
+
+    $ySel.select2($.extend({}, s2base, { width: '80px' }));
+    $ySel.next('.select2').on('mousedown', function (e) { e.stopPropagation(); });
+    $ySel
+      .on('select2:open',    function () { _tagDropdown($ySel); })
+      .on('select2:opening', function () { if ($mSel.data('select2')) $mSel.select2('close'); })
+      .on('change', function () {
+        var newY = parseInt($(this).val());
+        if (newY !== fp.currentYear) fp.jumpToDate(new Date(newY, fp.currentMonth, 1));
+      });
+
+    // Prevent option-list clicks (appended to body) from triggering Flatpickr's close
+    $(document.body).on('mousedown.fpcal' + uid, '.select2-dropdown', function (e) {
+      e.stopPropagation();
+    });
+
+    fp._s2Selects = { $mSel: $mSel, $ySel: $ySel, uid: uid };
+  }
+
+  // Sync Select2 display when Flatpickr navigates via prev/next arrows.
+  // Uses .val().trigger('change') — Select2 updates its label, and the
+  // guard (newM !== fp.currentMonth) in the change handlers stops the loop.
+  function _syncFpDropdowns(fp) {
+    if (!fp._s2Selects) return;
+    var $mSel = fp._s2Selects.$mSel;
+    var $ySel = fp._s2Selects.$ySel;
+
+    if ($mSel.data('select2')) {
+      $mSel.val(fp.currentMonth).trigger('change');
+    }
+    if ($ySel.data('select2')) {
+      // Ensure the navigated year exists in options
+      if (!$ySel.find('option[value="' + fp.currentYear + '"]').length) {
+        var $opt = $('<option>').val(fp.currentYear).text(fp.currentYear);
+        var inserted = false;
+        $ySel.find('option').each(function () {
+          if (+this.value > fp.currentYear) { $(this).before($opt); inserted = true; return false; }
+        });
+        if (!inserted) $ySel.append($opt);
+      }
+      $ySel.val(fp.currentYear).trigger('change');
+    }
+  }
+
+  function initDatePickers() {
+    var _fpHooks = {
+      onReady:       function (_, __, fp) { _initFpDropdowns(fp); },
+      onMonthChange: function (_, __, fp) { _syncFpDropdowns(fp); },
+      onYearChange:  function (_, __, fp) { _syncFpDropdowns(fp); },
+    };
+    var dateOpts = $.extend({
+      dateFormat:    'Y-m-d',
+      altInput:      true,
+      altFormat:     'D d M Y',
+      disableMobile: true,
+      onChange: function (_, __, fp) { $(fp.input).removeClass('error'); },
+    }, _fpHooks);
+
+    fpStart    = flatpickr('#field-start', dateOpts);
+    fpEnd      = flatpickr('#field-end',   dateOpts);
+
+    // ── Schedule date (date only) ─────────────────────
+    fpSchedDate = flatpickr('#sf-date', $.extend({}, dateOpts, {
+      onChange: function (_, __, fp) { $(fp.input).removeClass('error'); },
+    }));
+
   }
 
   // Lazy-init flag for the schedule-form status Select2
@@ -661,6 +813,7 @@
     $modalTitle.text(getLabel('addTripTitle'));
     $btnSaveLabel.text(getLabel('saveTrip'));
     $('#trip-form').trigger('reset');
+    fpStart.clear(); fpEnd.clear();
     clearErrors();
     $('#btn-trip-cancel-toggle').addClass('hidden');
     openSheet('#trip-sheet', '#sheet-backdrop');
@@ -677,8 +830,8 @@
     $('#field-id').val(trip.id);
     $('#field-name').val(trip.name);
     $('#field-destination').val(trip.destination);
-    $('#field-start').val(trip.startDate);
-    $('#field-end').val(trip.endDate);
+    fpStart.setDate(trip.startDate, false);
+    fpEnd.setDate(trip.endDate, false);
     $('#field-notes').val(trip.notes || '');
 
     $('#btn-trip-cancel-toggle').removeClass('hidden');
@@ -1020,7 +1173,7 @@
           '<div class="sched-dot ' + cls + '"></div>',
           '<div class="sched-line"></div>',
         '</div>',
-        '<div class="sched-card">',
+        '<div class="sched-card ' + cls + '">',
           '<div class="sched-card-detail">' + esc(s.detail) + '</div>',
           '<div class="sched-card-meta">',
             transportHtml, costHtml, mapHtml,
@@ -1052,12 +1205,15 @@
     $('#sched-form-title').text(sched ? getLabel('editSchedTitle') : getLabel('addSchedTitle'));
     $('#sf-save-label').text(sched ? getLabel('update') : getLabel('save'));
     $('#sched-form').trigger('reset');
+    fpSchedDate.clear(); $('#sf-time').val('');
     $('#sched-form .error').removeClass('error');
 
     if (sched) {
       $('#sf-id').val(sched.id);
       $('#sf-trip-id').val(sched.tripId);
-      $('#sf-datetime').val(sched.dateTime);
+      var dtParts = (sched.dateTime || '').split('T');
+      fpSchedDate.setDate(dtParts[0] || '', false);
+      $('#sf-time').val(dtParts[1] || '');
       $('#sf-detail').val(sched.detail);
       $('#sf-transport').val(sched.transport || '');
       $('#sf-cost').val(sched.cost || '');
@@ -1068,7 +1224,6 @@
       $('#sf-trip-id').val(currentTrip ? currentTrip.id : '');
       $('#sf-status').val('Planning').trigger('change');
     }
-    setTimeout(function () { $('#sf-datetime').focus(); }, 350);
   }
 
   function closeSchedForm() {
@@ -1083,16 +1238,19 @@
   function handleSchedSave() {
     $('#sched-form .error').removeClass('error');
     var ok = true;
-    $.each(['sf-datetime', 'sf-detail'], function (_, id) {
+    $.each(['sf-date', 'sf-detail'], function (_, id) {
       var $el = $('#' + id);
       if (!$el.val().trim()) { $el.addClass('error'); ok = false; }
     });
     if (!ok) { showToast(getLabel('fillRequired'), 'error'); return; }
 
+    var dateVal = $('#sf-date').val();
+    var timeVal = $('#sf-time').val() || '00:00';
+
     var sched = {
       id:        $('#sf-id').val(),
       tripId:    $('#sf-trip-id').val(),
-      dateTime:  $('#sf-datetime').val(),
+      dateTime:  dateVal + 'T' + timeVal,
       detail:    $('#sf-detail').val().trim(),
       transport: $('#sf-transport').val().trim(),
       cost:      $('#sf-cost').val(),
@@ -1668,7 +1826,14 @@
         '</div>',
       ].join(''));
 
-      $row.find('.user-role-select').on('change', function () {
+      $ul.append($row);
+
+      // Init Select2 after row is in the DOM (needs visible parent to compute size)
+      $row.find('.user-role-select').select2({
+        minimumResultsForSearch: Infinity,
+        dropdownParent: $(document.body),
+        width: '110px',
+      }).on('change', function () {
         var newRole = $(this).val();
         $row.find('.user-avatar').removeClass('ua-admin ua-staff ua-viewer').addClass('ua-' + newRole);
         google.script.run
@@ -1690,8 +1855,6 @@
           })
           .updateUser(u.id, { isActive: newVal });
       });
-
-      $ul.append($row);
     });
   }
 

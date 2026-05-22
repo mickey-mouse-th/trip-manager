@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Trip Manager</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
   <?!= include('Style') ?>
 </head>
 <body class="lang-en app-booting">
@@ -193,11 +194,11 @@
         <div class="form-row-2">
           <div class="form-group">
             <label class="form-label" for="field-start"><span class="lbl_labelStartDate"></span> <span class="req">*</span></label>
-            <input type="date" id="field-start" class="form-input">
+            <input type="text" id="field-start" class="form-input" readonly>
           </div>
           <div class="form-group">
             <label class="form-label" for="field-end"><span class="lbl_labelEndDate"></span> <span class="req">*</span></label>
-            <input type="date" id="field-end" class="form-input">
+            <input type="text" id="field-end" class="form-input" readonly>
           </div>
         </div>
         <div class="form-group">
@@ -295,8 +296,16 @@
         <input type="hidden" id="sf-id">
         <input type="hidden" id="sf-trip-id">
         <div class="form-group">
-          <label class="form-label" for="sf-datetime"><span class="lbl_labelDateTime"></span> <span class="req">*</span></label>
-          <input type="datetime-local" id="sf-datetime" class="form-input">
+          <label class="form-label" for="sf-date"><span class="lbl_labelDateTime"></span> <span class="req">*</span></label>
+          <div class="sf-dt-row">
+            <div class="sf-dt-date-wrap">
+              <input type="text" id="sf-date" class="form-input sf-dt-date" readonly placeholder="Select date">
+            </div>
+            <div class="sf-dt-time-wrap">
+              <svg class="sf-time-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <input type="time" id="sf-time" class="form-input sf-dt-time" placeholder="HH:MM">
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="sf-detail"><span class="lbl_labelDetail"></span> <span class="req">*</span></label>
@@ -454,6 +463,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
 <?!= include('i18n_en') ?>
   <?!= include('i18n_th') ?>
   <?!= include('i18n_lo') ?>

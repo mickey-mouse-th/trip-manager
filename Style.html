@@ -973,83 +973,126 @@
   @media (min-width: 640px) { .sched-form-sheet { width: 520px; } }
 
   /* ── Timeline ────────────────────────────────────────── */
-  .schedule-timeline { padding: 8px 20px 24px; }
+  .schedule-timeline { padding: 4px 18px 28px; }
 
-  .sched-item { display: flex; gap: 10px; padding-bottom: 4px; }
+  .sched-item { display: flex; gap: 0; padding-bottom: 0; }
 
+  /* ── Time column ─────────────────────────────────────── */
   .sched-time-col {
-    width: 50px; flex-shrink: 0;
-    text-align: right; padding-top: 4px;
+    width: 58px; flex-shrink: 0;
+    text-align: right; padding-top: 11px; padding-right: 14px;
   }
-  .sched-time { font-size: 12px; font-weight: 700; color: var(--c-text); line-height: 1.2; }
-  .sched-date { font-size: 10px; color: var(--c-text-muted); margin-top: 1px; }
+  .sched-time {
+    font-size: 13px; font-weight: 800; color: var(--c-text);
+    line-height: 1.15; letter-spacing: -.3px;
+  }
+  .sched-date {
+    font-size: 10px; font-weight: 500; color: var(--c-text-muted);
+    margin-top: 3px; letter-spacing: .1px;
+  }
 
+  /* ── Axis (dot + connector) ──────────────────────────── */
   .sched-axis {
     display: flex; flex-direction: column;
-    align-items: center; flex-shrink: 0; width: 20px;
+    align-items: center; flex-shrink: 0; width: 28px;
   }
   .sched-dot {
-    width: 13px; height: 13px;
-    border-radius: 50%; border: 2.5px solid currentColor;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0; margin-top: 9px;
+    border: 2.5px solid currentColor;
     background: var(--c-surface);
-    flex-shrink: 0; margin-top: 4px;
-    box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 15%, transparent);
+    transition: transform .18s ease, box-shadow .18s ease;
   }
-  .sched-dot.s-planning  { color: var(--s-planning-t); }
-  .sched-dot.s-confirmed { color: var(--s-active-t); background: var(--s-active-t); }
-  .sched-dot.s-done      { color: var(--s-completed-t); background: var(--s-completed-t); }
-  .sched-dot.s-cancelled { color: var(--s-cancelled-t); }
+  .sched-dot.s-planning {
+    color: var(--s-planning-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-planning-t) 14%, transparent);
+  }
+  .sched-dot.s-confirmed {
+    color: var(--s-active-t); background: var(--s-active-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-active-t) 18%, transparent),
+                0 2px 10px color-mix(in srgb, var(--s-active-t) 32%, transparent);
+  }
+  .sched-dot.s-done {
+    color: var(--s-completed-t); background: var(--s-completed-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-completed-t) 14%, transparent);
+  }
+  .sched-dot.s-cancelled {
+    color: var(--s-cancelled-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-cancelled-t) 12%, transparent);
+  }
 
   .sched-line {
     width: 2px; flex: 1;
-    background: linear-gradient(to bottom, var(--c-border), transparent);
-    margin: 5px 0 0; min-height: 16px;
+    background: linear-gradient(to bottom, var(--c-border) 40%, transparent);
+    margin: 6px 0 0; min-height: 20px;
   }
   .sched-item:last-child .sched-line { display: none; }
 
+  /* ── Card ────────────────────────────────────────────── */
   .sched-card {
-    flex: 1; background: var(--c-surface);
+    flex: 1; min-width: 0;
+    background: var(--c-surface);
     border: 1px solid var(--c-border);
-    border-radius: var(--r-sm);
-    padding: 11px 13px; margin-bottom: 12px;
-    min-width: 0;
-    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+    border-left: 3.5px solid currentColor;
+    border-radius: 10px;
+    padding: 12px 14px 11px;
+    margin-bottom: 14px; margin-left: 2px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.055), 0 1px 2px rgba(0,0,0,.04);
+    transition: box-shadow .18s ease, transform .18s ease;
   }
+  .sched-card:hover {
+    box-shadow: 0 6px 22px rgba(0,0,0,.1), 0 1px 4px rgba(0,0,0,.05);
+    transform: translateY(-1px);
+  }
+  .sched-card.s-planning  { color: var(--s-planning-t); }
+  .sched-card.s-confirmed { color: var(--s-active-t); }
+  .sched-card.s-done      { color: var(--s-completed-t); }
+  .sched-card.s-cancelled { color: var(--s-cancelled-t); }
+
   .sched-card-detail {
-    font-size: 14px; font-weight: 600;
-    color: var(--c-text); margin-bottom: 6px;
+    font-size: 14px; font-weight: 700;
+    color: var(--c-text); margin-bottom: 7px; line-height: 1.4;
   }
   .sched-card-meta {
     display: flex; flex-direction: column;
-    gap: 4px; font-size: 12px; color: var(--c-text-muted);
+    gap: 5px; font-size: 12px; color: var(--c-text-muted);
   }
-  .sched-meta-row { display: flex; align-items: center; gap: 5px; }
-  .sched-meta-row a { color: var(--c-primary); text-decoration: none; }
+  .sched-meta-row {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sched-meta-row svg { flex-shrink: 0; opacity: .7; }
+  .sched-meta-row a {
+    color: var(--c-primary); text-decoration: none; font-weight: 500;
+  }
+  .sched-meta-row a:hover { text-decoration: underline; }
   .sched-note {
     font-size: 12px; color: var(--c-text-muted);
-    margin-top: 7px; line-height: 1.5;
-    border-top: 1px dashed var(--c-border);
-    padding-top: 7px;
+    margin-top: 9px; line-height: 1.6;
+    padding: 8px 10px;
+    background: color-mix(in srgb, currentColor 5%, transparent);
+    border-radius: 6px;
+    border-left: 2px solid color-mix(in srgb, currentColor 40%, transparent);
   }
   .sched-card-footer {
     display: flex; align-items: center; justify-content: space-between;
-    margin-top: 9px; padding-top: 9px;
+    margin-top: 10px; padding-top: 10px;
     border-top: 1px solid var(--c-border);
   }
   .sched-badge {
     display: inline-flex; align-items: center;
-    padding: 2px 9px; border-radius: 20px;
-    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: .2px;
   }
   .sched-badge.s-planning  { background: var(--s-planning);  color: var(--s-planning-t); }
   .sched-badge.s-confirmed { background: var(--s-active);    color: var(--s-active-t); }
   .sched-badge.s-done      { background: var(--s-completed); color: var(--s-completed-t); }
   .sched-badge.s-cancelled { background: var(--s-cancelled); color: var(--s-cancelled-t); }
 
-  .sched-card-actions { display: flex; gap: 4px; }
+  .sched-card-actions { display: flex; gap: 3px; }
   .sched-act-btn {
     background: none; border: none; cursor: pointer;
-    color: var(--c-text-muted); padding: 4px 7px;
+    color: var(--c-text-muted); padding: 4px 8px;
     border-radius: 7px; font-size: 12px; font-weight: 500;
     display: flex; align-items: center; gap: 3px;
     transition: background var(--ease), color var(--ease);
@@ -1058,20 +1101,19 @@
   .sched-act-btn.del:hover { background: var(--s-cancelled); color: var(--c-danger); }
 
   /* ── Schedule time-aware states ─────────────────────── */
-  /* Pulsing ring on the dot whose schedule is "now" (uses the dot's own currentColor) */
   @keyframes sched-now-pulse {
-    0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 22%, transparent); }
-    55%       { box-shadow: 0 0 0 9px color-mix(in srgb, currentColor 0%,  transparent); }
+    0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
+    55%       { box-shadow: 0 0 0 10px color-mix(in srgb, currentColor 0%, transparent); }
   }
   .sched-dot--now {
-    animation: sched-now-pulse 1.7s ease-in-out infinite;
+    animation: sched-now-pulse 1.8s ease-in-out infinite;
   }
 
-  /* Past schedule items — fade time column, connector line and card */
+  /* Past items — fade gently */
   .sched-item--past .sched-time-col,
-  .sched-item--past .sched-card     { opacity: .38; transition: opacity var(--ease); }
+  .sched-item--past .sched-card     { opacity: .35; transition: opacity var(--ease); }
   .sched-item--past .sched-dot,
-  .sched-item--past .sched-line     { opacity: .25; transition: opacity var(--ease); }
+  .sched-item--past .sched-line     { opacity: .22; transition: opacity var(--ease); }
 
   /* ── Schedule empty state ────────────────────────────── */
   .sched-empty {
@@ -1080,6 +1122,220 @@
     padding: 52px 24px; color: var(--c-text-muted); text-align: center;
   }
   .sched-empty p { font-size: 14px; }
+
+  /* ── Flatpickr overrides ─────────────────────────────── */
+  .flatpickr-calendar {
+    background: var(--c-surface); border: 1px solid var(--c-border);
+    border-radius: 16px; font-family: inherit;
+    box-shadow: 0 20px 60px rgba(0,0,0,.13), 0 4px 16px rgba(0,0,0,.07);
+    padding: 16px 14px 14px; width: 318px;
+  }
+  .flatpickr-calendar::before, .flatpickr-calendar::after { display: none; }
+
+  /* ── Calendar header ─────────────────────────────────── */
+  .flatpickr-months {
+    display: flex !important; align-items: center !important;
+    padding-bottom: 12px; gap: 2px;
+    position: relative; height: auto !important;
+    border-bottom: 1px solid var(--c-border);
+    margin-bottom: 10px;
+  }
+  .flatpickr-month {
+    flex: 1; height: auto !important; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .flatpickr-current-month {
+    display: flex !important; align-items: center; justify-content: center;
+    gap: 4px; padding: 0 !important;
+    width: 100%; position: static !important; left: auto !important; top: auto !important;
+    height: auto !important;
+  }
+  /* Hide original year input — replaced by fp-year-select */
+  .flatpickr-current-month .numInputWrapper { width: auto; }
+  .flatpickr-current-month input.cur-year  { display: none !important; }
+  .numInputWrapper > span { display: none; }
+
+  /* Prev / Next arrows */
+  .flatpickr-prev-month, .flatpickr-next-month {
+    position: static !important; top: auto !important; left: auto !important; right: auto !important;
+    width: 30px; height: 30px; padding: 0; flex-shrink: 0;
+    display: flex !important; align-items: center; justify-content: center;
+    color: var(--c-text-muted);
+    border-radius: 50%; transition: background var(--ease), color var(--ease);
+  }
+  .flatpickr-prev-month:hover, .flatpickr-next-month:hover {
+    background: var(--c-bg); color: var(--c-primary);
+  }
+  .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: currentColor; width: 14px; height: 14px; }
+
+  /* Select2 dropdown must sit above Flatpickr's z-index (99999) */
+  .select2-container--open .select2-dropdown { z-index: 100000 !important; }
+
+  /* ── Select2 for month / year inside Flatpickr header ── */
+  .flatpickr-current-month .select2-container { display: inline-flex !important; }
+  .flatpickr-current-month .select2-container--default .select2-selection--single {
+    height: 32px; border: none; border-radius: 8px;
+    background: var(--c-bg);
+    display: flex; align-items: center;
+    transition: background var(--ease);
+  }
+  .flatpickr-current-month .select2-container--default.select2-container--open .select2-selection--single,
+  .flatpickr-current-month .select2-container--default .select2-selection--single:hover {
+    background: color-mix(in srgb, var(--c-primary) 10%, transparent);
+  }
+  .flatpickr-current-month .select2-container--default .select2-selection--single {
+    justify-content: center;
+  }
+  .flatpickr-current-month .select2-container--default .select2-selection--single
+    .select2-selection__rendered {
+    line-height: 32px; padding-left: 10px; padding-right: 2px;
+    font-size: 14px; font-weight: 700; color: var(--c-text);
+    flex: 0 0 auto; width: auto !important;
+  }
+  .flatpickr-current-month .select2-container--default .select2-selection--single
+    .select2-selection__arrow {
+    position: static !important; height: 32px; width: 20px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .flatpickr-current-month .select2-container--default .select2-selection--single
+    .select2-selection__arrow b {
+    border-color: var(--c-text-muted) transparent transparent transparent;
+  }
+
+  /* Year select (custom element) */
+  .fp-year-select { display: none; } /* hidden — Select2 replaces it */
+
+  /* Fix month Select2 to a constant width so it doesn't jump between short/long month names */
+  .fp-month-s2 { width: 148px !important; min-width: 148px !important; max-width: 148px !important; }
+  /* Fix year Select2 width */
+  .fp-year-select + .select2-container { width: 80px !important; min-width: 80px !important; }
+
+  /* ── Flatpickr month/year dropdown list (fp-s2-dropdown) ── */
+  .fp-s2-dropdown {
+    border: 1px solid var(--c-border) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 28px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.07) !important;
+    overflow: hidden;
+  }
+  .fp-s2-dropdown .select2-results { padding: 4px; }
+  .fp-s2-dropdown .select2-results__options { max-height: 220px !important; }
+  .fp-s2-dropdown .select2-results__option {
+    padding: 7px 12px;
+    font-size: 13px; font-weight: 500;
+    border-radius: 7px;
+    color: var(--c-text);
+    transition: background var(--ease), color var(--ease);
+  }
+  .fp-s2-dropdown .select2-results__option--highlighted {
+    background: var(--c-bg) !important; color: var(--c-text) !important;
+  }
+  .fp-s2-dropdown .select2-results__option[aria-selected="true"] {
+    background: color-mix(in srgb, var(--c-primary) 12%, transparent) !important;
+    color: var(--c-primary) !important; font-weight: 700;
+  }
+  .fp-s2-dropdown .select2-results__option--highlighted[aria-selected="true"] {
+    background: color-mix(in srgb, var(--c-primary) 20%, transparent) !important;
+    color: var(--c-primary) !important;
+  }
+
+  /* ── Weekday labels ─── */
+  .flatpickr-weekdays { background: transparent; height: 30px; margin-bottom: 4px; }
+  .flatpickr-weekday  {
+    background: transparent; color: var(--c-text-muted);
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+  }
+
+  /* ── Day grid ─── */
+  .flatpickr-days { width: 100%; border: none; }
+  .dayContainer   { width: 100%; min-width: unset; max-width: unset; padding: 0; gap: 1px; }
+
+  .flatpickr-day {
+    border: none; border-radius: 50%;
+    color: var(--c-text); font-size: 13px; font-weight: 500;
+    height: 38px; line-height: 38px; max-width: 38px;
+    transition: background var(--ease), color var(--ease), transform 80ms ease;
+    flex-basis: 38px;
+  }
+  .flatpickr-day:hover { background: var(--c-bg); color: var(--c-text); border: none; transform: scale(1.08); }
+  .flatpickr-day.today {
+    background: color-mix(in srgb, var(--c-primary) 12%, transparent);
+    border: none; color: var(--c-primary); font-weight: 800;
+  }
+  .flatpickr-day.today:hover {
+    background: color-mix(in srgb, var(--c-primary) 20%, transparent);
+  }
+  .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.selected:focus {
+    background: var(--c-primary); color: #fff; border: none; font-weight: 700;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--c-primary) 50%, transparent);
+    transform: scale(1.1);
+  }
+  .flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-text-muted); opacity: .3; transform: none;
+  }
+  .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { opacity: .35; }
+
+  /* Time picker (inline in date calendar) */
+  .flatpickr-time {
+    height: 46px; border-top: 1px solid var(--c-border);
+    margin-top: 10px; padding-top: 2px; background: transparent;
+  }
+  .flatpickr-time input {
+    color: var(--c-text); font-weight: 700; font-size: 16px;
+    background: transparent; border-radius: 8px; border: none;
+  }
+  .flatpickr-time input:hover, .flatpickr-time input:focus { background: var(--c-bg); }
+  .flatpickr-time .flatpickr-time-separator { color: var(--c-text-muted); font-weight: 700; }
+  .flatpickr-time .numInputWrapper { flex: 1; }
+  .flatpickr-time .numInputWrapper span { display: none; }
+
+  /* Alt-input inherits .form-input style; readonly cursor → pointer */
+  input.flatpickr-input[readonly]     { cursor: pointer; }
+  .flatpickr-input.flatpickr-alt-input { cursor: pointer; }
+
+  /* Propagate .error from hidden original input to visible alt-input */
+  .flatpickr-input.error + .flatpickr-input.flatpickr-alt-input { border-color: var(--c-danger); }
+
+  /* ── Time-only popup (noCalendar) ────────────────────── */
+  .flatpickr-calendar.noCalendar {
+    width: 190px; padding: 18px 16px 16px;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time {
+    height: auto; border-top: none; margin-top: 0; padding: 0;
+    display: flex; align-items: center; justify-content: center; gap: 2px;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time .numInputWrapper {
+    flex: 0 0 64px;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time input {
+    font-size: 34px; font-weight: 800; height: 60px;
+    border-radius: 10px; background: var(--c-bg);
+    border: 1.5px solid var(--c-border); text-align: center; width: 64px;
+    transition: border-color var(--ease);
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time input:hover,
+  .flatpickr-calendar.noCalendar .flatpickr-time input:focus {
+    border-color: var(--c-primary); background: var(--c-bg);
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time .flatpickr-time-separator {
+    font-size: 28px; font-weight: 800; color: var(--c-text-muted);
+    line-height: 60px; padding: 0 2px; flex-shrink: 0;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time .numInputWrapper span { display: none; }
+
+  /* ── sf-dt-row — date + time side by side ─────────────── */
+  .sf-dt-row { display: flex; gap: 10px; }
+  .sf-dt-date-wrap { flex: 1; min-width: 0; }
+  .sf-dt-time-wrap {
+    position: relative; flex-shrink: 0; width: 190px;
+  }
+  .sf-time-icon {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--c-text-muted); pointer-events: none; z-index: 1;
+  }
+  .sf-dt-time { padding-left: 33px !important; cursor: pointer; }
+  /* alt-input from sf-date fills its wrapper */
+  .sf-dt-date-wrap input { width: 100%; }
 
   /* ── Select2 overrides for sched-form-sheet ─────────── */
   .sched-form-sheet .select2-container { width: 100% !important; }
@@ -1093,5 +1349,23 @@
   }
   .sched-form-sheet .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 48px; right: 10px;
+  }
+
+  /* ── Select2 overrides for users-sheet role select ───── */
+  #users-sheet .select2-container { width: 110px !important; flex-shrink: 0; }
+  #users-sheet .select2-container--default .select2-selection--single {
+    height: 34px; border: 1.5px solid var(--c-border);
+    border-radius: 8px; background: var(--c-surface);
+    display: flex; align-items: center;
+  }
+  #users-sheet .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 34px; padding-left: 10px; padding-right: 28px;
+    font-size: 13px; font-weight: 600; color: var(--c-text);
+  }
+  #users-sheet .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 34px; right: 6px;
+  }
+  #users-sheet .select2-container--default.select2-container--disabled .select2-selection--single {
+    opacity: .45; cursor: not-allowed;
   }
 </style>
