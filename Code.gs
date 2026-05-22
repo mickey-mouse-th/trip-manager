@@ -6,41 +6,6 @@ const SCHED_HEADERS = ['ID', 'TripID', 'DateTime', 'Detail', 'Transport', 'Cost'
 
 const CACHE_TTL = 300; // 5-minute safety-net TTL (writes always clear immediately)
 
-// ─── GViz SQL-like query helper ───────────────────────────────────────────────
-// Usage: _querySheet('Trips', 'SELECT * WHERE F = "Planning" ORDER BY D ASC')
-// Columns are referenced by letter (A, B, C …) matching sheet column order.
-// Supported clauses: SELECT, WHERE, ORDER BY, LIMIT, GROUP BY, COUNT/SUM/AVG
-//
-// Returns an array of objects keyed by column label (header row value).
-function _querySheet(sheetName, sql) {
-  const ss  = SpreadsheetApp.getActiveSpreadsheet();
-  const url = 'https://docs.google.com/spreadsheets/d/' + ss.getId()
-            + '/gviz/tq?tq=' + encodeURIComponent(sql)
-            + '&sheet='      + encodeURIComponent(sheetName)
-            + '&headers=1';
-
-  const res  = UrlFetchApp.fetch(url, {
-    headers: { Authorization: 'Bearer ' + ScriptApp.getOAuthToken() },
-    muteHttpExceptions: true,
-  });
-
-  // GViz wraps JSON in  google.visualization.Query.setResponse({…});
-  const raw  = res.getContentText().replace(/^[^(]+\(/, '').replace(/\);?\s*$/, '');
-  const json = JSON.parse(raw);
-
-  if (json.status === 'error') {
-    const msg = (json.errors || []).map(e => e.detailed_message || e.message).join('; ');
-    throw new Error('[_querySheet] ' + sheetName + ': ' + msg);
-  }
-
-  const table = json.table;
-  const cols  = table.cols.map(c => c.label || c.id);   // header labels
-  return (table.rows || []).map(row => {
-    const obj = {};
-    cols.forEach((col, i) => { obj[col] = row.c[i] ? row.c[i].v : null; });
-    return obj;
-  });
-}
 
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
@@ -76,17 +41,17 @@ function getTrips() {
   const cached = _cache().get('trips');
   if (cached) return JSON.parse(cached);
 
-  getSheet(); // ensure sheet + headers exist before querying
-  const tz   = Session.getScriptTimeZone();
-  const rows  = _querySheet(SHEET_NAME, 'SELECT * ORDER BY D ASC');
-  const trips = rows.map(r => ({
-    id:          r['ID'],
-    name:        r['Trip Name'],
-    destination: r['Destination'],
-    startDate:   r['Start Date'] ? Utilities.formatDate(new Date(r['Start Date']), tz, 'yyyy-MM-dd') : '',
-    endDate:     r['End Date']   ? Utilities.formatDate(new Date(r['End Date']),   tz, 'yyyy-MM-dd') : '',
-    status:      r['Status'],
-    notes:       r['Notes'],
+  const sheet = getSheet();
+  const data  = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  const trips = data.slice(1).map(row => ({
+    id:          row[0],
+    name:        row[1],
+    destination: row[2],
+    startDate:   row[3] ? Utilities.formatDate(new Date(row[3]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+    endDate:     row[4] ? Utilities.formatDate(new Date(row[4]), Session.getScriptTimeZone(), 'yyyy-MM-dd') : '',
+    status:      row[5],
+    notes:       row[6],
   }));
   _cache().put('trips', JSON.stringify(trips), CACHE_TTL);
   return trips;
@@ -148,21 +113,22 @@ function getSchedulesByTripId(tripId) {
   const cached   = _cache().get(cacheKey);
   if (cached) return JSON.parse(cached);
 
-  getSchedSheet(); // ensure sheet + headers exist before querying
-  const tz   = Session.getScriptTimeZone();
-  const rows  = _querySheet(SCHED_SHEET,
-    `SELECT * WHERE B = '${tripId}' ORDER BY C ASC`);
-  const list  = rows.map(r => ({
-    id:        r['ID'],
-    tripId:    r['TripID'],
-    dateTime:  r['DateTime'] ? Utilities.formatDate(new Date(r['DateTime']), tz, "yyyy-MM-dd'T'HH:mm") : '',
-    detail:    r['Detail'],
-    transport: r['Transport'],
-    cost:      r['Cost'],
-    map:       r['Map'],
-    note:      r['Note'],
-    status:    r['Status'],
-  }));
+  const sheet = getSchedSheet();
+  const data  = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  const list = data.slice(1)
+    .filter(row => row[1] === tripId)
+    .map(row => ({
+      id:        row[0],
+      tripId:    row[1],
+      dateTime:  row[2] ? Utilities.formatDate(new Date(row[2]), Session.getScriptTimeZone(), "yyyy-MM-dd'T'HH:mm") : '',
+      detail:    row[3],
+      transport: row[4],
+      cost:      row[5],
+      map:       row[6],
+      note:      row[7],
+      status:    row[8],
+    }));
   _cache().put(cacheKey, JSON.stringify(list), CACHE_TTL);
   return list;
 }
