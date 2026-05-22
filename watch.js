@@ -5,17 +5,28 @@ const http = require('http');
 
 const dir   = __dirname;
 const PORT  = 3000;
-const WATCH = ['Index.html', 'Style.html', 'Script.html', 'Login.html'];
+const WATCH = ['Index.html', 'Style.html', 'Script.html', 'Login.html',
+               'i18n_en.html', 'i18n_th.html', 'i18n_lo.html', 'i18n_ja.html', 'i18n_zh.html'];
 
 function build() {
   try {
     const style  = fs.readFileSync(path.join(dir, 'Style.html'),  'utf8');
     const script = fs.readFileSync(path.join(dir, 'Script.html'), 'utf8');
     const login  = fs.readFileSync(path.join(dir, 'Login.html'),  'utf8');
+    const i18nEn = fs.readFileSync(path.join(dir, 'i18n_en.html'), 'utf8');
+    const i18nTh = fs.readFileSync(path.join(dir, 'i18n_th.html'), 'utf8');
+    const i18nLo = fs.readFileSync(path.join(dir, 'i18n_lo.html'), 'utf8');
+    const i18nJa = fs.readFileSync(path.join(dir, 'i18n_ja.html'), 'utf8');
+    const i18nZh = fs.readFileSync(path.join(dir, 'i18n_zh.html'), 'utf8');
     let   html   = fs.readFileSync(path.join(dir, 'Index.html'),  'utf8');
-    html = html.replace("<?!= include('Style') ?>",  () => style);
-    html = html.replace("<?!= include('Script') ?>", () => script);
-    html = html.replace("<?!= include('Login') ?>",  () => login);
+    html = html.replace("<?!= include('Style') ?>",   () => style);
+    html = html.replace("<?!= include('Login') ?>",   () => login);
+    html = html.replace("<?!= include('i18n_en') ?>", () => i18nEn);
+    html = html.replace("<?!= include('i18n_th') ?>", () => i18nTh);
+    html = html.replace("<?!= include('i18n_lo') ?>", () => i18nLo);
+    html = html.replace("<?!= include('i18n_ja') ?>", () => i18nJa);
+    html = html.replace("<?!= include('i18n_zh') ?>", () => i18nZh);
+    html = html.replace("<?!= include('Script') ?>",  () => script);
     fs.writeFileSync(path.join(dir, 'preview.html'), html, 'utf8');
     console.log('[' + new Date().toLocaleTimeString() + '] ✅ rebuilt preview.html');
   } catch (e) {
