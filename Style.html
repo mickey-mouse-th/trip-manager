@@ -508,45 +508,167 @@
   /* ── Login screen ───────────────────────────────────── */
   .login-screen {
     position: fixed; inset: 0;
-    background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 60%, #7c3aed 100%);
+    background: #07071a;
     z-index: 1000;
     display: flex; align-items: center; justify-content: center;
     padding: 24px;
+    overflow: hidden;
     transition: opacity .35s ease;
   }
   .login-screen.fade-out { opacity: 0; pointer-events: none; }
 
-  .login-box {
-    background: var(--c-surface);
-    border-radius: 20px;
-    padding: 32px 28px 28px;
-    width: 100%; max-width: 380px;
-    box-shadow: 0 32px 80px rgba(0,0,0,.35);
-    animation: slide-up .3s ease;
+  /* Floating glow orbs */
+  .login-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(72px); pointer-events: none;
+    animation: orb-drift 10s ease-in-out infinite;
   }
+  .login-orb-1 {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(79,70,229,.55) 0%, transparent 70%);
+    top: -160px; left: -140px;
+    animation-duration: 12s;
+  }
+  .login-orb-2 {
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(124,58,237,.45) 0%, transparent 70%);
+    bottom: -100px; right: -80px;
+    animation-duration: 9s; animation-delay: -4s;
+  }
+  .login-orb-3 {
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(219,39,119,.35) 0%, transparent 70%);
+    top: 45%; left: 55%;
+    animation-duration: 14s; animation-delay: -7s;
+  }
+  .login-orb-4 {
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(6,182,212,.3) 0%, transparent 70%);
+    bottom: 20%; left: 5%;
+    animation-duration: 11s; animation-delay: -2s;
+  }
+  @keyframes orb-drift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33%      { transform: translate(28px,-24px) scale(1.06); }
+    66%      { transform: translate(-18px,18px) scale(.94); }
+  }
+
+  /* Glass card */
+  .login-box {
+    background: rgba(255,255,255,.055);
+    border: 1px solid rgba(255,255,255,.11);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-radius: 24px;
+    padding: 36px 32px 32px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset,
+                0 32px 80px rgba(0,0,0,.55);
+    animation: slide-up .32s ease;
+    position: relative; z-index: 1;
+  }
+
+  /* Logo */
   .login-logo {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 18px; font-weight: 800;
-    color: var(--c-primary); margin-bottom: 28px;
-    letter-spacing: -.3px;
+    display: flex; align-items: center; gap: 13px;
+    margin-bottom: 32px;
   }
   .login-logo-icon {
-    width: 44px; height: 44px; border-radius: 12px;
+    width: 50px; height: 50px; border-radius: 15px;
     background: linear-gradient(135deg, #4f46e5, #7c3aed);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
+    box-shadow: 0 0 24px rgba(99,82,220,.6);
   }
   .login-logo-icon svg { stroke: #fff; }
-  .login-title { font-size: 20px; font-weight: 800; color: var(--c-text); margin-bottom: 4px; }
-  .login-sub   { font-size: 13px; color: var(--c-text-muted); margin-bottom: 20px; }
-  .login-sub strong { color: var(--c-text); }
-  .login-btn   { width: 100%; height: 48px; margin-top: 8px; border-radius: var(--r-sm); font-size: 15px; }
-  .login-switch { text-align: center; font-size: 13px; color: var(--c-text-muted); margin-top: 16px; }
-  .login-switch a { color: var(--c-primary); font-weight: 600; text-decoration: none; }
+  .login-logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .login-logo-name { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.3px; line-height: 1; }
+  .login-logo-tag  { font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .2px; }
+
+  .login-title {
+    font-size: 22px; font-weight: 800;
+    color: #fff; margin-bottom: 5px; letter-spacing: -.3px;
+  }
+  .login-sub {
+    font-size: 13px; color: rgba(255,255,255,.45);
+    margin-bottom: 22px; line-height: 1.5;
+  }
+  .login-sub strong { color: rgba(255,255,255,.7); }
+
+  /* Form fields inside login */
+  .login-box .form-group { gap: 6px; }
+  .login-box .form-label {
+    font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,.55);
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .login-box .form-input {
+    background: rgba(255,255,255,.07);
+    border: 1.5px solid rgba(255,255,255,.1);
+    color: #fff;
+    border-radius: 12px;
+  }
+  .login-box .form-input::placeholder { color: rgba(255,255,255,.25); }
+  .login-box .form-input:hover {
+    background: rgba(255,255,255,.1);
+    border-color: rgba(255,255,255,.2);
+  }
+  .login-box .form-input:disabled {
+    opacity: .5; cursor: not-allowed;
+  }
+
+  /* CTA button */
+  .login-btn {
+    width: 100%; height: 50px; margin-top: 6px;
+    border-radius: 13px; font-size: 15px; font-weight: 700;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    box-shadow: 0 4px 22px rgba(99,82,220,.45);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .login-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(99,82,220,.6);
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+  }
+  .login-btn:active:not(:disabled) { transform: scale(.98); }
+
+  /* Switch link */
+  .login-switch {
+    text-align: center; font-size: 13px;
+    color: rgba(255,255,255,.4); margin-top: 18px;
+  }
+  .login-switch a {
+    color: #a5b4fc; font-weight: 600; text-decoration: none;
+    transition: color .15s;
+  }
+  .login-switch a:hover { color: #c7d2fe; }
+
+  /* Error banner */
   .login-error {
-    background: #fef2f2; border: 1px solid #fecaca;
-    color: #b91c1c; border-radius: var(--r-sm);
+    background: rgba(239,68,68,.15);
+    border: 1px solid rgba(239,68,68,.3);
+    color: #fca5a5;
+    border-radius: 10px;
     padding: 10px 13px; font-size: 13px; margin-bottom: 16px;
+  }
+
+  /* Divider */
+  .login-divider {
+    color: rgba(255,255,255,.25);
+  }
+  .login-divider::before,
+  .login-divider::after { background: rgba(255,255,255,.1); }
+
+  /* Google button */
+  .login-box .btn-google {
+    background: rgba(255,255,255,.06);
+    border: 1.5px solid rgba(255,255,255,.1);
+    color: #fff; border-radius: 13px; height: 48px;
+    font-size: 14px;
+  }
+  .login-box .btn-google:hover {
+    background: rgba(255,255,255,.11);
+    border-color: rgba(255,255,255,.2);
   }
 
   /* ── Header right ────────────────────────────────────── */

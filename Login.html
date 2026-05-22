@@ -1,4 +1,11 @@
 <div class="login-screen hidden" id="login-screen">
+
+  <!-- Animated background orbs -->
+  <div class="login-orb login-orb-1"></div>
+  <div class="login-orb login-orb-2"></div>
+  <div class="login-orb login-orb-3"></div>
+  <div class="login-orb login-orb-4"></div>
+
   <div class="login-box">
 
     <div class="login-logo">
@@ -9,13 +16,16 @@
           <path d="M2 12h20"/>
         </svg>
       </div>
-      <span>Trip Manager</span>
+      <div class="login-logo-text">
+        <span class="login-logo-name">Trip Manager</span>
+        <span class="login-logo-tag">Where will you go next?</span>
+      </div>
     </div>
 
     <!-- Login panel -->
     <div id="lp-login">
       <h2 class="login-title">Welcome back</h2>
-      <p class="login-sub">Sign in to your account</p>
+      <p class="login-sub">Sign in to continue your journey</p>
       <div class="login-error hidden" id="login-error"></div>
       <form id="login-form" novalidate>
         <div class="form-group">
@@ -85,7 +95,7 @@
       <p class="login-switch">Already have an account? <a href="#" id="go-login">Sign in</a></p>
     </div>
 
-    <!-- Google new user panel — set display name -->
+    <!-- Google new user panel -->
     <div id="lp-google-new" class="hidden">
       <h2 class="login-title">Almost there!</h2>
       <p class="login-sub">Choose a display name for your account</p>
