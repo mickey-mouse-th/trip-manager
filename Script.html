@@ -1156,14 +1156,14 @@
   // Marks the schedule item that is "now" based on three cases:
   //
   //  ALL future  → first item pulses ("coming up next")
-  //  MIXED       → last past item pulses ("you are here"); earlier ones faded
-  //  ALL past    → nothing pulses (trip is over — show as plain history)
+  //  MIXED       → past items faded; first future item pulses ("next up")
+  //  ALL past    → everything faded, nothing pulses (trip is over)
   //
   function markCurrentSchedule() {
     if (!allSchedules.length) return;
     var now = new Date();
 
-    var lastPastIdx = -1;   // index of the last schedule that has started
+    var lastPastIdx = -1;   // index of the last schedule that is in the past
     var hasAnyFuture = false;
 
     $.each(allSchedules, function (i, s) {
@@ -1174,6 +1174,7 @@
 
     var allPast   = lastPastIdx !== -1 && !hasAnyFuture;
     var allFuture = lastPastIdx === -1;
+    var firstFutureIdx = allFuture ? 0 : lastPastIdx + 1;
 
     $.each(allSchedules, function (i, s) {
       var $item = $('#schedule-list .sched-item[data-id="' + s.id + '"]');
@@ -1181,7 +1182,7 @@
       $item.removeClass('sched-item--past');
 
       if (allPast) {
-        // All done — fade everything so it reads as history, no pulse
+        // Trip is over — fade everything, nothing pulses
         $item.addClass('sched-item--past');
         return;
       }
@@ -1190,9 +1191,9 @@
         if (i === 0) $item.find('.sched-dot').addClass('sched-dot--now');
         return;
       }
-      // Mixed: you are here
-      if (i < lastPastIdx)       $item.addClass('sched-item--past');
-      else if (i === lastPastIdx) $item.find('.sched-dot').addClass('sched-dot--now');
+      // Mixed: fade past items, pulse the first upcoming item
+      if (i <= lastPastIdx)        $item.addClass('sched-item--past');
+      else if (i === firstFutureIdx) $item.find('.sched-dot').addClass('sched-dot--now');
     });
   }
 

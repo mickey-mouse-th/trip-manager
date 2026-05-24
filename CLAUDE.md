@@ -194,6 +194,7 @@ var(--shadow-lg)      /* box-shadow ใหญ่ */
 
 | วันที่ | การเปลี่ยนแปลง | ไฟล์ที่เกี่ยวข้อง |
 |--------|---------------|-----------------|
+| 2026-05-24 | Fix `markCurrentSchedule()` — MIXED case เดิม: past item กระพริบ (ผิด) → ใหม่: past items เทาทั้งหมด, future item แรกกระพริบ (`i <= lastPastIdx` → fade, `i === lastPastIdx+1` → pulse) | `Script.html` |
 | 2026-05-24 | Auto-mock บน localhost — `location.hostname === 'localhost'` หรือ `file://` จะ `setupMock()` อัตโนมัติ ไม่ต้องตั้ง `localStorage.dev_mock` อีกต่อไป | `Script.html`, `build-preview.js` |
 | 2026-05-24 | Mock data ครบทุก trip status — เพิ่ม schedules ให้ TRIP-4 (Cancelled) และ TRIP-5 (New York) + ทุก trip มี schedule ครบ 4 statuses (Confirmed/Planning/Done/Cancelled) | `Script.html` |
 | 2026-05-24 | Components.html — Trip Cards และ Schedule Timeline ครบทุก status พร้อม content สม่ำเสมอ | `Components.html` |
