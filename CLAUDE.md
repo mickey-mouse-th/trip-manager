@@ -111,7 +111,7 @@ var fp = flatpickr('#my-date', {
 - ไม่มีลูกศร (`select2-selection__arrow { display: none }`)
 - เดือนและปีชิดกัน (`gap: 0`)
 - Dropdown list ใช้ class `fp-s2-dropdown` (add ผ่าน `select2:open` event)
-- ป้องกัน Flatpickr ปิดตอน Select2 เปิด — `stopPropagation` บน mousedown ของ `.select2` container
+- ป้องกัน Flatpickr ปิดตอน Select2 เปิด — `stopPropagation` บน `mousedown touchstart` ของ `.select2` container และ `.select2-dropdown` (mobile ใช้ touchstart)
 
 ---
 

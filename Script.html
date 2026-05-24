@@ -521,6 +521,9 @@
     //   Fix: stopPropagation on mousedown at the Select2 container level (fires before
     //   the event reaches document, so Flatpickr never sees it).
     //   For dropdown-list clicks we delegate on document.body (stops before document).
+    // Problem 1b (mobile): On mobile, Flatpickr also listens to touchstart on document.
+    //   Scrolling inside Select2 dropdown fires touchstart → Flatpickr closes the calendar.
+    //   Fix: also stopPropagation on touchstart for both the .select2 container and .select2-dropdown.
     // Problem 2: Flatpickr's built-in CSS sets z-index:99999; Select2 dropdown is 1051 —
     //   so the dropdown list renders *behind* the calendar. Fix is in Style.html.
 
@@ -533,7 +536,7 @@
 
     $mSel.select2($.extend({}, s2base, { width: '130px' }));
     $mSel.next('.select2').addClass('fp-month-s2').css('width', '130px')
-      .on('mousedown', function (e) { e.stopPropagation(); });
+      .on('mousedown touchstart', function (e) { e.stopPropagation(); });
     $mSel
       .on('select2:open',    function () { _tagDropdown($mSel); })
       .on('select2:opening', function () { if ($ySel.data('select2')) $ySel.select2('close'); })
@@ -543,7 +546,7 @@
       });
 
     $ySel.select2($.extend({}, s2base, { width: '70px' }));
-    $ySel.next('.select2').on('mousedown', function (e) { e.stopPropagation(); });
+    $ySel.next('.select2').on('mousedown touchstart', function (e) { e.stopPropagation(); });
     $ySel
       .on('select2:open',    function () { _tagDropdown($ySel); })
       .on('select2:opening', function () { if ($mSel.data('select2')) $mSel.select2('close'); })
@@ -552,8 +555,9 @@
         if (newY !== fp.currentYear) fp.jumpToDate(new Date(newY, fp.currentMonth, 1));
       });
 
-    // Prevent option-list clicks (appended to body) from triggering Flatpickr's close
-    $(document.body).on('mousedown.fpcal' + uid, '.select2-dropdown', function (e) {
+    // Prevent option-list clicks/scrolls (appended to body) from triggering Flatpickr's close.
+    // touchstart is needed on mobile — Flatpickr listens to both mousedown and touchstart on document.
+    $(document.body).on('mousedown.fpcal' + uid + ' touchstart.fpcal' + uid, '.select2-dropdown', function (e) {
       e.stopPropagation();
     });
 
