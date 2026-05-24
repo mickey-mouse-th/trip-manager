@@ -42,3 +42,9 @@ console.log('✅  preview.html built — open it in your browser');
 console.log('');
 console.log('    Enable mock:  localStorage.setItem(\'dev_mock\', \'1\')');
 console.log('    Disable mock: localStorage.removeItem(\'dev_mock\')');
+
+// Build components-preview.html
+let compHtml = fs.readFileSync(path.join(dir, 'Components.html'), 'utf8');
+compHtml = compHtml.replace("<?!= include('Style') ?>", () => style);
+fs.writeFileSync(path.join(dir, 'components-preview.html'), compHtml, 'utf8');
+console.log('✅  components-preview.html built — open it in your browser');

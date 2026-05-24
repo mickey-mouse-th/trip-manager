@@ -1,5 +1,35 @@
 # Trip Manager — Claude Guidelines
 
+## Deployment Workflow
+
+### 3 Steps การนำงานขึ้น Production
+
+| Step | คำสั่ง | รายละเอียด |
+|------|--------|------------|
+| **Step 1** | แก้ไข localhost | แก้ไขไฟล์ใน `/Users/admin/Desktop/trip-manager/` แล้วรัน `node build-preview.js` ทดสอบที่ browser |
+| **Step 2** | commit + push + copy to AppScript | `git commit` → `git push` → copy code ไปวางที่ Google Apps Script editor (ยังไม่ต้อง deploy) |
+| **Step 3** | Deploy production | กด Deploy ใน Google Apps Script |
+
+### กฎการทำงาน
+- **ทุกครั้งที่รับงานแก้บัค** → ทำแค่ **Step 1** เท่านั้น
+- **Step 2** → รอให้ user สั่งก่อนเสมอ ("commit+push+deploy" หรือระบุชัดเจน)
+- **Step 3** → ⚠️ **ต้องถามกลับทุกครั้งก่อนทำ** ว่า "จะเอางานขึ้น production ไหม?" แม้ user จะพูดถึง step 3 ก็ตาม
+
+---
+
+## Component Library — กฎหลัก
+
+### `Components.html` คือ Single Source of Truth
+- **ทุก component ใหม่** ที่เพิ่มเข้า project ต้องเพิ่ม showcase ใน `Components.html` ด้วยเสมอ
+- **ทุกการแก้ไข** component ที่มีอยู่แล้ว (style, behavior, HTML structure) ต้องอัปเดต `Components.html` พร้อมกันด้วยเสมอ
+- ถ้าจะใช้ component ใดใน `Index.html` / `Script.html` / `Style.html` ให้ copy pattern มาจาก `Components.html` เท่านั้น
+- หลังแก้ไขใดๆ ให้รัน `node build-preview.js` เพื่อ rebuild ทั้ง `preview.html` และ `components-preview.html`
+
+### บันทึกการเปลี่ยนแปลง
+**ทุกครั้งที่มีการเพิ่มหรือแก้ไข component/pattern ใดๆ ต้องอัปเดต `CLAUDE.md` ส่วนที่เกี่ยวข้องด้วยเสมอ** ไม่ว่าจะเป็น HTML structure, CSS class, JS init pattern, หรือ design token ใหม่
+
+---
+
 ## UI Component Design Patterns
 
 ทุกครั้งที่มีการเรียกใช้ Select2, Flatpickr calendar, หรือ time input ให้ใช้ design ตามนี้เสมอ
@@ -157,3 +187,19 @@ var(--shadow-lg)      /* box-shadow ใหญ่ */
 - ห้ามใช้ `:focus` styles บน input
 - Select2 ทุกที่ใช้ `dropdownParent: $(document.body)` เสมอ
 - Select2 ทุกที่ต้องกำหนด `width` ตายตัวเสมอ
+
+---
+
+## Changelog
+
+| วันที่ | การเปลี่ยนแปลง | ไฟล์ที่เกี่ยวข้อง |
+|--------|---------------|-----------------|
+| 2026-05-24 | สร้าง `Components.html` — component library showcase ครอบคลุม: Color Tokens, Status Colors, Buttons, Stat Pills, Form Inputs, Trip Cards, Schedule Timeline, Select2 variants, Shadows & Radius | `Components.html` |
+| 2026-05-24 | อัปเดต `build-preview.js` — build `components-preview.html` จาก `Components.html` พร้อมกับ `preview.html` | `build-preview.js` |
+| 2026-05-24 | Global scrollbar hiding บน Select2 ทุกที่ — `scrollbar-width: none` + `::-webkit-scrollbar { display: none }` | `Style.html` |
+| 2026-05-24 | เปลี่ยน time input จาก Select2 เป็น native `<input type="time">` พร้อม clock icon — `.sf-dt-time-wrap` width 190px | `Style.html`, `Index.html` |
+| 2026-05-24 | Flatpickr calendar redesign — border-radius 16px, header divider, prev/next วงกลม, day cells วงกลม, scale animation | `Style.html` |
+| 2026-05-24 | Month/Year Select2 ใน calendar — fixed width (month 130px/90px, year 70px), gap 0, ไม่มีลูกศร, fp-s2-dropdown class | `Style.html`, `Script.html` |
+| 2026-05-24 | ลบ `btn-add-trip-header` ออกจาก HTML และ JS | `Index.html`, `Script.html` |
+| 2026-05-24 | Fix mobile user menu — `.btn-header-users` แสดงทุก breakpoint | `Style.html` |
+| 2026-05-24 | Performance: `getAppData()` batch endpoint, `_schedsCache` client-side cache, `_getSpreadsheet()` GAS cache | `Code.gs`, `Script.html` |

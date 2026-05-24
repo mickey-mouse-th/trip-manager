@@ -513,8 +513,8 @@
       $('#select2-' + id + '-results').closest('.select2-dropdown').addClass('fp-s2-dropdown');
     }
 
-    $mSel.select2($.extend({}, s2base, { width: '148px' }));
-    $mSel.next('.select2').addClass('fp-month-s2').css('width', '148px')
+    $mSel.select2($.extend({}, s2base, { width: '130px' }));
+    $mSel.next('.select2').addClass('fp-month-s2').css('width', '130px')
       .on('mousedown', function (e) { e.stopPropagation(); });
     $mSel
       .on('select2:open',    function () { _tagDropdown($mSel); })
@@ -524,7 +524,7 @@
         if (newM !== fp.currentMonth) fp.jumpToDate(new Date(fp.currentYear, newM, 1));
       });
 
-    $ySel.select2($.extend({}, s2base, { width: '80px' }));
+    $ySel.select2($.extend({}, s2base, { width: '70px' }));
     $ySel.next('.select2').on('mousedown', function (e) { e.stopPropagation(); });
     $ySel
       .on('select2:open',    function () { _tagDropdown($ySel); })
@@ -611,7 +611,7 @@
   // ── Events ───────────────────────────────────────────────
   function bindEvents() {
     // Open sheet
-    $('#btn-add-trip-header, #btn-add-trip-fab, #btn-empty-add').on('click', openAddSheet);
+    $('#btn-add-trip-fab, #btn-empty-add').on('click', openAddSheet);
 
     // Close sheet
     $('#modal-close, #btn-cancel').on('click', closeSheet);
@@ -1788,7 +1788,7 @@
     currentUser = null;
     localStorage.removeItem('tm_user');
     $('body').removeClass('role-admin role-staff role-viewer');
-    $('#header-user, #btn-add-trip-header, #btn-users').addClass('hidden');
+    $('#header-user, #btn-users').addClass('hidden');
     allTrips = []; renderTrips();
     $('#login-screen').removeClass('hidden fade-out');
     $('#login-name, #login-pass').val('');
@@ -1806,7 +1806,6 @@
     $('#header-user-name').text(currentUser.name);
     $('#header-user-role').text(currentUser.role);
     $('#header-user').removeClass('hidden');
-    if (currentUser.role !== 'viewer') $('#btn-add-trip-header').removeClass('hidden');
     if (currentUser.role === 'admin')  $('#btn-users').removeClass('hidden');
   }
 
