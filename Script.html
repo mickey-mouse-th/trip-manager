@@ -42,40 +42,58 @@
     ];
 
     var SAMPLE_SCHEDS = [
-      // ── Tokyo TRIP-1 ── ALL FUTURE → first item blinks ────────────────────
-      { id:'S-1', tripId:'TRIP-1', dateTime:mockDT(30,'06:00'), detail:'Fly BKK → NRT (TG680)',              transport:'Suvarnabhumi Airport',        cost:'15000', map:'https://maps.google.com', note:'Window seat booked',       status:'Confirmed' },
-      { id:'S-2', tripId:'TRIP-1', dateTime:mockDT(30,'16:30'), detail:'Check in — Shinjuku Granbell Hotel', transport:'Narita Express → Shinjuku',   cost:'3500',  map:'',                       note:'',                         status:'Planning'  },
-      { id:'S-3', tripId:'TRIP-1', dateTime:mockDT(31,'09:00'), detail:'Visit Senso-ji Temple',              transport:'Tokyo Metro (Asakusa Line)',  cost:'500',   map:'https://maps.google.com', note:'Go early to avoid crowds', status:'Planning'  },
-      { id:'S-4', tripId:'TRIP-1', dateTime:mockDT(32,'10:00'), detail:'Day trip to Nikko',                  transport:'Shinkansen',                  cost:'4200',  map:'',                       note:'',                         status:'Planning'  },
-      { id:'S-5', tripId:'TRIP-1', dateTime:mockDT(43,'10:00'), detail:'Fly NRT → BKK (TG681)',              transport:'Narita Airport',              cost:'15000', map:'',                       note:'Return flight',            status:'Planning'  },
+      // ── Tokyo TRIP-1 ── Planning trip · FUTURE · Confirmed+Planning+Cancelled ─
+      { id:'S-1', tripId:'TRIP-1', dateTime:mockDT(30,'06:00'), detail:'Fly BKK → NRT (TG680)',              transport:'Suvarnabhumi Airport',        cost:'15000', map:'https://maps.google.com', note:'Window seat booked',           status:'Confirmed' },
+      { id:'S-2', tripId:'TRIP-1', dateTime:mockDT(30,'16:30'), detail:'Check in — Shinjuku Granbell Hotel', transport:'Narita Express → Shinjuku',   cost:'3500',  map:'',                       note:'',                             status:'Planning'  },
+      { id:'S-3', tripId:'TRIP-1', dateTime:mockDT(31,'09:00'), detail:'Visit Senso-ji Temple',              transport:'Tokyo Metro (Asakusa Line)',  cost:'500',   map:'https://maps.google.com', note:'Go early to avoid crowds',     status:'Planning'  },
+      { id:'S-4', tripId:'TRIP-1', dateTime:mockDT(32,'10:00'), detail:'Day trip to Nikko',                  transport:'Shinkansen',                  cost:'4200',  map:'',                       note:'Heavy rain forecast — skipped', status:'Cancelled' },
+      { id:'S-5', tripId:'TRIP-1', dateTime:mockDT(43,'10:00'), detail:'Fly NRT → BKK (TG681)',              transport:'Narita Airport',              cost:'15000', map:'',                       note:'Return flight',                status:'Planning'  },
 
-      // ── Paris TRIP-2 ── MIXED → "you are here" blinks ─────────────────────
-      { id:'S-6',  tripId:'TRIP-2', dateTime:mockDT(-1,'07:30'), detail:'Fly BKK → CDG (AF164)',             transport:'Suvarnabhumi Airport',        cost:'45000', map:'',                       note:'',                         status:'Confirmed' },
-      { id:'S-7',  tripId:'TRIP-2', dateTime:mockDT(-1,'15:00'), detail:'Check in — Hôtel du Louvre',        transport:'RER B → Châtelet',            cost:'8500',  map:'',                       note:'',                         status:'Done'      },
-      { id:'S-8',  tripId:'TRIP-2', dateTime:mockDT(0, '10:00'), detail:'Visit the Louvre Museum',           transport:'Métro Line 1 (Palais Royal)', cost:'1700',  map:'https://maps.google.com', note:'Book tickets in advance',  status:'Confirmed' },
-      { id:'S-9',  tripId:'TRIP-2', dateTime:mockDT(1, '12:00'), detail:'Lunch at Le Marais',                transport:'Walk',                        cost:'1200',  map:'',                       note:'',                         status:'Planning'  },
-      { id:'S-10', tripId:'TRIP-2', dateTime:mockDT(2, '07:00'), detail:'Fly CDG → BKK (AF165)',             transport:'RER B → Charles de Gaulle',   cost:'45000', map:'',                       note:'Return flight',            status:'Planning'  },
+      // ── Paris TRIP-2 ── Active trip · MIXED · all 4 statuses ──────────────
+      { id:'S-6',  tripId:'TRIP-2', dateTime:mockDT(-1,'07:30'), detail:'Fly BKK → CDG (AF164)',             transport:'Suvarnabhumi Airport',        cost:'45000', map:'',                       note:'',                             status:'Done'      },
+      { id:'S-7',  tripId:'TRIP-2', dateTime:mockDT(-1,'15:00'), detail:'Check in — Hôtel du Louvre',        transport:'RER B → Châtelet',            cost:'8500',  map:'',                       note:'',                             status:'Done'      },
+      { id:'S-8',  tripId:'TRIP-2', dateTime:mockDT(0, '10:00'), detail:'Visit the Louvre Museum',           transport:'Métro Line 1 (Palais Royal)', cost:'1700',  map:'https://maps.google.com', note:'Book tickets in advance',      status:'Confirmed' },
+      { id:'S-9',  tripId:'TRIP-2', dateTime:mockDT(0, '19:00'), detail:'Seine River Night Cruise',          transport:'Walk to Pont de l\'Iéna',     cost:'2200',  map:'',                       note:'Booked — romantic dinner pkg',  status:'Cancelled' },
+      { id:'S-10', tripId:'TRIP-2', dateTime:mockDT(1, '12:00'), detail:'Lunch at Le Marais',                transport:'Walk',                        cost:'1200',  map:'',                       note:'',                             status:'Planning'  },
+      { id:'S-11', tripId:'TRIP-2', dateTime:mockDT(2, '07:00'), detail:'Fly CDG → BKK (AF165)',             transport:'RER B → Charles de Gaulle',   cost:'45000', map:'',                       note:'Return flight',                status:'Planning'  },
 
-      // ── Bali TRIP-3 ── ALL PAST → all faded, nothing blinks ───────────────
-      { id:'S-11', tripId:'TRIP-3', dateTime:mockDT(-17,'08:00'), detail:'Fly BKK → DPS (TG431)',            transport:'Suvarnabhumi Airport',        cost:'9500',  map:'',                       note:'',                         status:'Done'      },
-      { id:'S-12', tripId:'TRIP-3', dateTime:mockDT(-17,'14:00'), detail:'Check in — Seminyak Beach Resort', transport:'Airport taxi',                cost:'1200',  map:'',                       note:'Booked villa',             status:'Done'      },
-      { id:'S-13', tripId:'TRIP-3', dateTime:mockDT(-15,'09:00'), detail:'Tanah Lot Temple at sunrise',      transport:'Scooter rental',              cost:'400',   map:'https://maps.google.com', note:'',                         status:'Done'      },
-      { id:'S-14', tripId:'TRIP-3', dateTime:mockDT(-13,'11:00'), detail:'Cooking class in Ubud',            transport:'Hotel shuttle',               cost:'2500',  map:'',                       note:'',                         status:'Done'      },
-      { id:'S-15', tripId:'TRIP-3', dateTime:mockDT(-10,'07:30'), detail:'Fly DPS → BKK (TG432)',            transport:'Ngurah Rai Airport',          cost:'9500',  map:'',                       note:'',                         status:'Done'      },
+      // ── Bali TRIP-3 ── Done trip · ALL PAST · Done+Cancelled ──────────────
+      { id:'S-12', tripId:'TRIP-3', dateTime:mockDT(-17,'08:00'), detail:'Fly BKK → DPS (TG431)',            transport:'Suvarnabhumi Airport',        cost:'9500',  map:'',                       note:'',                             status:'Done'      },
+      { id:'S-13', tripId:'TRIP-3', dateTime:mockDT(-17,'14:00'), detail:'Check in — Seminyak Beach Resort', transport:'Airport taxi',                cost:'1200',  map:'',                       note:'Booked villa with pool',        status:'Done'      },
+      { id:'S-14', tripId:'TRIP-3', dateTime:mockDT(-15,'09:00'), detail:'Tanah Lot Temple at sunrise',      transport:'Scooter rental',              cost:'400',   map:'https://maps.google.com', note:'',                             status:'Done'      },
+      { id:'S-15', tripId:'TRIP-3', dateTime:mockDT(-14,'11:00'), detail:'White water rafting Ayung River',  transport:'Hotel pickup',                cost:'1800',  map:'',                       note:'Too rough — cancelled on site', status:'Cancelled' },
+      { id:'S-16', tripId:'TRIP-3', dateTime:mockDT(-13,'11:00'), detail:'Cooking class in Ubud',            transport:'Hotel shuttle',               cost:'2500',  map:'',                       note:'',                             status:'Done'      },
+      { id:'S-17', tripId:'TRIP-3', dateTime:mockDT(-10,'07:30'), detail:'Fly DPS → BKK (TG432)',            transport:'Ngurah Rai Airport',          cost:'9500',  map:'',                       note:'',                             status:'Done'      },
 
-      // ── Koh Samui TRIP-6 ── ALL FUTURE → first item blinks ───────────────
-      { id:'S-16', tripId:'TRIP-6', dateTime:mockDT(10,'06:30'), detail:'บินดอนเมือง → สมุย (PG241)',       transport:'สนามบินดอนเมือง',             cost:'3200',  map:'',                       note:'เช็คอินออนไลน์แล้ว',       status:'Confirmed' },
-      { id:'S-17', tripId:'TRIP-6', dateTime:mockDT(10,'10:00'), detail:'เช็คอิน Samui Palm Beach Resort',  transport:'แท็กซี่จากสนามบิน',          cost:'1500',  map:'https://maps.google.com', note:'',                         status:'Planning'  },
-      { id:'S-18', tripId:'TRIP-6', dateTime:mockDT(11,'09:00'), detail:'ทัวร์เกาะนางยวน ดำน้ำดูปะการัง', transport:'เรือสปีดโบ๊ต',               cost:'1800',  map:'',                       note:'เตรียมครีมกันแดด',         status:'Planning'  },
-      { id:'S-19', tripId:'TRIP-6', dateTime:mockDT(12,'18:30'), detail:'ดินเนอร์ริมทะเล Fisherman Village',transport:'รถสองแถว',                    cost:'600',   map:'https://maps.google.com', note:'',                         status:'Planning'  },
-      { id:'S-20', tripId:'TRIP-6', dateTime:mockDT(14,'11:00'), detail:'บินกลับ สมุย → กรุงเทพ (PG242)',  transport:'สนามบินสมุย',                 cost:'3200',  map:'',                       note:'',                         status:'Planning'  },
+      // ── Chiang Mai TRIP-4 ── Cancelled trip · ALL Cancelled ───────────────
+      { id:'S-18', tripId:'TRIP-4', dateTime:mockDT(-60,'05:30'), detail:'Fly BKK → CNX (DD8300)',           transport:'สนามบินดอนเมือง',             cost:'1800',  map:'',                       note:'ตั๋วถูกยกเลิก — คืนเงินแล้ว', status:'Cancelled' },
+      { id:'S-19', tripId:'TRIP-4', dateTime:mockDT(-60,'10:00'), detail:'เช็คอิน Akyra Manor Chiang Mai',  transport:'รถแท็กซี่',                   cost:'3500',  map:'',                       note:'ยกเลิกการจอง',                 status:'Cancelled' },
+      { id:'S-20', tripId:'TRIP-4', dateTime:mockDT(-58,'09:00'), detail:'วัดพระสิงห์ & พระธาตุดอยสุเทพ',  transport:'รถสองแถว',                    cost:'300',   map:'https://maps.google.com', note:'',                             status:'Cancelled' },
+      { id:'S-21', tripId:'TRIP-4', dateTime:mockDT(-56,'18:00'), detail:'ตลาดกลางคืน ถนนวัวลาย',          transport:'เดินเท้า',                    cost:'500',   map:'',                       note:'',                             status:'Cancelled' },
+      { id:'S-22', tripId:'TRIP-4', dateTime:mockDT(-46,'07:00'), detail:'บินกลับ CNX → BKK (DD8301)',       transport:'สนามบินเชียงใหม่',            cost:'1800',  map:'',                       note:'',                             status:'Cancelled' },
 
-      // ── Chiang Mai TRIP-7 ── MIXED → "you are here" blinks ───────────────
-      { id:'S-21', tripId:'TRIP-7', dateTime:mockDT(-3,'05:30'), detail:'บินดอนเมือง → เชียงใหม่ (DD4208)',transport:'สนามบินดอนเมือง',             cost:'1200',  map:'',                       note:'',                         status:'Done'      },
-      { id:'S-22', tripId:'TRIP-7', dateTime:mockDT(-3,'14:00'), detail:'วัดพระธาตุดอยสุเทพ',              transport:'รถสองแถวสาย 15',              cost:'300',   map:'https://maps.google.com', note:'แต่งกายสุภาพ',             status:'Done'      },
-      { id:'S-23', tripId:'TRIP-7', dateTime:mockDT(-2,'08:00'), detail:'ตลาดกาดหลวง ชิมอาหารเช้า',       transport:'เดินเท้า',                    cost:'200',   map:'',                       note:'',                         status:'Done'      },
-      { id:'S-24', tripId:'TRIP-7', dateTime:mockDT(0, '13:00'), detail:'ช้อปปิ้งถนนนิมมานเหมินทร์',      transport:'เดินเท้า',                    cost:'500',   map:'',                       note:'ซื้อของฝาก',               status:'Confirmed' },
-      { id:'S-25', tripId:'TRIP-7', dateTime:mockDT(1, '06:00'), detail:'บินกลับ เชียงใหม่ → กรุงเทพ',    transport:'สนามบินเชียงใหม่',            cost:'1200',  map:'',                       note:'',                         status:'Planning'  },
+      // ── New York TRIP-5 ── Planning trip · FAR FUTURE · Confirmed+Planning ─
+      { id:'S-23', tripId:'TRIP-5', dateTime:mockDT(90,'10:00'), detail:'Fly BKK → JFK (EK385 via DXB)',     transport:'Suvarnabhumi Airport',        cost:'65000', map:'',                       note:'Business class upgrade applied', status:'Confirmed' },
+      { id:'S-24', tripId:'TRIP-5', dateTime:mockDT(90,'22:00'), detail:'Check in — The Standard, High Line',transport:'JFK AirTrain → Subway',       cost:'18000', map:'https://maps.google.com', note:'',                             status:'Planning'  },
+      { id:'S-25', tripId:'TRIP-5', dateTime:mockDT(91,'09:00'), detail:'Times Square & Central Park walk',  transport:'NYC Subway',                  cost:'0',     map:'',                       note:'',                             status:'Planning'  },
+      { id:'S-26', tripId:'TRIP-5', dateTime:mockDT(92,'08:00'), detail:'Black Friday — Macy\'s Herald Sq',  transport:'Walk',                        cost:'20000', map:'https://maps.google.com', note:'Budget ฿20,000 สำหรับช้อปปิ้ง', status:'Planning'  },
+      { id:'S-27', tripId:'TRIP-5', dateTime:mockDT(95,'14:00'), detail:'Fly JFK → BKK (EK202 via DXB)',     transport:'JFK Airport',                 cost:'65000', map:'',                       note:'Return — 20 hr transit DXB',   status:'Planning'  },
+
+      // ── Koh Samui TRIP-6 ── Planning trip · FUTURE · Confirmed+Planning ───
+      { id:'S-28', tripId:'TRIP-6', dateTime:mockDT(10,'06:30'), detail:'บินดอนเมือง → สมุย (PG241)',       transport:'สนามบินดอนเมือง',             cost:'3200',  map:'',                       note:'เช็คอินออนไลน์แล้ว',           status:'Confirmed' },
+      { id:'S-29', tripId:'TRIP-6', dateTime:mockDT(10,'10:00'), detail:'เช็คอิน Samui Palm Beach Resort',  transport:'แท็กซี่จากสนามบิน',          cost:'1500',  map:'https://maps.google.com', note:'',                             status:'Planning'  },
+      { id:'S-30', tripId:'TRIP-6', dateTime:mockDT(11,'09:00'), detail:'ทัวร์เกาะนางยวน ดำน้ำดูปะการัง', transport:'เรือสปีดโบ๊ต',               cost:'1800',  map:'',                       note:'เตรียมครีมกันแดด',             status:'Planning'  },
+      { id:'S-31', tripId:'TRIP-6', dateTime:mockDT(11,'16:00'), detail:'ชมพระอาทิตย์ตก หาดละไม',          transport:'รถมอเตอร์ไซค์เช่า',          cost:'300',   map:'',                       note:'ยังไม่แน่ใจ — อาจยกเลิก',     status:'Cancelled' },
+      { id:'S-32', tripId:'TRIP-6', dateTime:mockDT(12,'18:30'), detail:'ดินเนอร์ริมทะเล Fisherman Village',transport:'รถสองแถว',                    cost:'600',   map:'https://maps.google.com', note:'',                             status:'Planning'  },
+      { id:'S-33', tripId:'TRIP-6', dateTime:mockDT(14,'11:00'), detail:'บินกลับ สมุย → กรุงเทพ (PG242)',  transport:'สนามบินสมุย',                 cost:'3200',  map:'',                       note:'',                             status:'Planning'  },
+
+      // ── Chiang Mai TRIP-7 ── Active trip · MIXED · all 4 statuses ─────────
+      { id:'S-34', tripId:'TRIP-7', dateTime:mockDT(-3,'05:30'), detail:'บินดอนเมือง → เชียงใหม่ (DD4208)',transport:'สนามบินดอนเมือง',             cost:'1200',  map:'',                       note:'',                             status:'Done'      },
+      { id:'S-35', tripId:'TRIP-7', dateTime:mockDT(-3,'14:00'), detail:'วัดพระธาตุดอยสุเทพ',              transport:'รถสองแถวสาย 15',              cost:'300',   map:'https://maps.google.com', note:'แต่งกายสุภาพ',                 status:'Done'      },
+      { id:'S-36', tripId:'TRIP-7', dateTime:mockDT(-2,'08:00'), detail:'ตลาดกาดหลวง ชิมอาหารเช้า',       transport:'เดินเท้า',                    cost:'200',   map:'',                       note:'',                             status:'Done'      },
+      { id:'S-37', tripId:'TRIP-7', dateTime:mockDT(-1,'10:00'), detail:'เที่ยวบ้านดำ (Baan Dam Museum)',   transport:'Grab',                        cost:'100',   map:'https://maps.google.com', note:'ปิดปรับปรุง — ยกเลิก',         status:'Cancelled' },
+      { id:'S-38', tripId:'TRIP-7', dateTime:mockDT(0, '13:00'), detail:'ช้อปปิ้งถนนนิมมานเหมินทร์',      transport:'เดินเท้า',                    cost:'500',   map:'',                       note:'ซื้อของฝาก',                   status:'Confirmed' },
+      { id:'S-39', tripId:'TRIP-7', dateTime:mockDT(1, '06:00'), detail:'บินกลับ เชียงใหม่ → กรุงเทพ',    transport:'สนามบินเชียงใหม่',            cost:'1200',  map:'',                       note:'',                             status:'Planning'  },
     ];
 
     function loadTrips() {
@@ -1974,7 +1992,7 @@
 
   // ── Boot ──────────────────────────────────────────────────
   $(function () {
-    if (localStorage.getItem('dev_mock') === '1') setupMock();
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1' || location.protocol === 'file:') setupMock();
     bindAuthEvents();
     var saved = localStorage.getItem('tm_user');
     $('body').removeClass('app-booting');

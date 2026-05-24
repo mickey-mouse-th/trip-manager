@@ -39,9 +39,7 @@ html = html.replace("<?!= include('Script') ?>",  () => script);
 
 fs.writeFileSync(path.join(dir, 'preview.html'), html, 'utf8');
 console.log('✅  preview.html built — open it in your browser');
-console.log('');
-console.log('    Enable mock:  localStorage.setItem(\'dev_mock\', \'1\')');
-console.log('    Disable mock: localStorage.removeItem(\'dev_mock\')');
+console.log('    Mock data loads automatically on localhost / file://');
 
 // Build components-preview.html
 let compHtml = fs.readFileSync(path.join(dir, 'Components.html'), 'utf8');

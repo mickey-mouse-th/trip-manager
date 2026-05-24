@@ -234,10 +234,13 @@
   <!-- 6. Trip Cards -->
   <div class="cl-section">
     <div class="cl-section-title">Trip Card</div>
-    <div style="display:flex;flex-direction:column;gap:12px;max-width:420px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
+
       <!-- Planning -->
       <div class="trip-card status-planning">
-        <div class="trip-card-banner"></div>
+        <div class="trip-card-banner">
+          <span class="badge-planning trip-card-badge">💭 Planning</span>
+        </div>
         <div class="trip-card-body">
           <div class="trip-card-name">Tokyo Adventure</div>
           <div class="trip-card-dest">
@@ -246,20 +249,22 @@
           </div>
           <div class="trip-card-meta">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Jul 1 → Jul 14, 2025
-            <span class="stat-pill planning" style="padding:2px 8px;font-size:10px"><span class="stat-num" style="font-size:10px">Planning</span></span>
+            Jul 1 → Jul 14, 2026
           </div>
           <div class="trip-card-notes">Cherry blossom season — book hotels early</div>
         </div>
         <div class="trip-card-actions">
           <button class="card-action-btn">✏️ Edit</button>
-          <button class="card-action-btn">📅 Schedule</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
           <button class="card-action-btn del">🗑️ Delete</button>
         </div>
       </div>
+
       <!-- Active -->
       <div class="trip-card status-active">
-        <div class="trip-card-banner"></div>
+        <div class="trip-card-banner">
+          <span class="badge-active trip-card-badge">🔥 Active</span>
+        </div>
         <div class="trip-card-body">
           <div class="trip-card-name">Paris Weekend</div>
           <div class="trip-card-dest">
@@ -268,18 +273,22 @@
           </div>
           <div class="trip-card-meta">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Sep 5 → Sep 8, 2025
+            May 24 → May 27, 2026
           </div>
+          <div class="trip-card-notes">Eiffel Tower dinner reservation confirmed ✓</div>
         </div>
         <div class="trip-card-actions">
           <button class="card-action-btn">✏️ Edit</button>
-          <button class="card-action-btn">📅 Schedule</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
           <button class="card-action-btn del">🗑️ Delete</button>
         </div>
       </div>
+
       <!-- Done -->
       <div class="trip-card status-done">
-        <div class="trip-card-banner"></div>
+        <div class="trip-card-banner">
+          <span class="badge-done trip-card-badge">🌿 Done</span>
+        </div>
         <div class="trip-card-body">
           <div class="trip-card-name">Bali Retreat</div>
           <div class="trip-card-dest">
@@ -288,18 +297,22 @@
           </div>
           <div class="trip-card-meta">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Mar 10 → Mar 17, 2025
+            Mar 10 → Mar 17, 2026
           </div>
+          <div class="trip-card-notes">Amazing trip — highly recommend Ubud rice fields</div>
         </div>
         <div class="trip-card-actions">
           <button class="card-action-btn">✏️ Edit</button>
-          <button class="card-action-btn">📅 Schedule</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
           <button class="card-action-btn del">🗑️ Delete</button>
         </div>
       </div>
+
       <!-- Cancelled -->
       <div class="trip-card status-cancelled">
-        <div class="trip-card-banner"></div>
+        <div class="trip-card-banner">
+          <span class="badge-cancelled trip-card-badge">🌧️ Cancelled</span>
+        </div>
         <div class="trip-card-body">
           <div class="trip-card-name">Chiang Mai Slow</div>
           <div class="trip-card-dest">
@@ -308,15 +321,17 @@
           </div>
           <div class="trip-card-meta">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            Jan 5 → Jan 10, 2025
+            Jan 5 → Jan 10, 2026
           </div>
+          <div class="trip-card-notes">Cancelled due to flooding — will reschedule</div>
         </div>
         <div class="trip-card-actions">
           <button class="card-action-btn">✏️ Edit</button>
-          <button class="card-action-btn">📅 Schedule</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
           <button class="card-action-btn del">🗑️ Delete</button>
         </div>
       </div>
+
     </div>
   </div>
 
@@ -324,11 +339,12 @@
   <div class="cl-section">
     <div class="cl-section-title">Schedule Timeline</div>
     <div class="cl-card cl-sched-demo">
-      <!-- Confirmed (now) -->
+
+      <!-- Confirmed / Active now -->
       <div class="sched-item">
         <div class="sched-time-col">
           <div class="sched-time">09:00</div>
-          <div class="sched-date">Mon 1 Jul</div>
+          <div class="sched-date">Sun 24 May</div>
         </div>
         <div class="sched-axis">
           <div class="sched-dot s-confirmed sched-dot--now"></div>
@@ -339,16 +355,16 @@
           <div class="sched-card-meta">
             <div class="sched-meta-row">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-              Suvarnabhumi Airport
+              Suvarnabhumi Airport T1
             </div>
             <div class="sched-meta-row">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               ฿15,000
             </div>
           </div>
-          <div class="sched-note">Window seat booked</div>
+          <div class="sched-note">Window seat row 24A — online check-in done</div>
           <div class="sched-card-footer">
-            <span class="sched-badge s-confirmed">Confirmed</span>
+            <span class="sched-badge s-confirmed">🔥 Confirmed</span>
             <div class="sched-card-actions">
               <button class="sched-act-btn">Edit</button>
               <button class="sched-act-btn del">Delete</button>
@@ -356,11 +372,12 @@
           </div>
         </div>
       </div>
+
       <!-- Planning -->
       <div class="sched-item">
         <div class="sched-time-col">
           <div class="sched-time">16:30</div>
-          <div class="sched-date">Mon 1 Jul</div>
+          <div class="sched-date">Sun 24 May</div>
         </div>
         <div class="sched-axis">
           <div class="sched-dot s-planning"></div>
@@ -368,8 +385,19 @@
         </div>
         <div class="sched-card s-planning">
           <div class="sched-card-detail">Check in — Shinjuku Granbell Hotel</div>
+          <div class="sched-card-meta">
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              Shinjuku, Tokyo
+            </div>
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              ฿4,200 / night
+            </div>
+          </div>
+          <div class="sched-note">Need to confirm early check-in request</div>
           <div class="sched-card-footer">
-            <span class="sched-badge s-planning">Planning</span>
+            <span class="sched-badge s-planning">💭 Planning</span>
             <div class="sched-card-actions">
               <button class="sched-act-btn">Edit</button>
               <button class="sched-act-btn del">Delete</button>
@@ -377,20 +405,32 @@
           </div>
         </div>
       </div>
-      <!-- Done (past) -->
+
+      <!-- Done -->
       <div class="sched-item sched-item--past">
         <div class="sched-time-col">
           <div class="sched-time">10:00</div>
-          <div class="sched-date">Tue 2 Jul</div>
+          <div class="sched-date">Mon 25 May</div>
         </div>
         <div class="sched-axis">
           <div class="sched-dot s-done"></div>
           <div class="sched-line"></div>
         </div>
         <div class="sched-card s-done">
-          <div class="sched-card-detail">Visit Senso-ji Temple</div>
+          <div class="sched-card-detail">Visit Senso-ji Temple & Asakusa market</div>
+          <div class="sched-card-meta">
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Asakusa, Tokyo
+            </div>
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              ฿500
+            </div>
+          </div>
+          <div class="sched-note">Bought lucky charm at the temple</div>
           <div class="sched-card-footer">
-            <span class="sched-badge s-done">Done</span>
+            <span class="sched-badge s-done">🌿 Done</span>
             <div class="sched-card-actions">
               <button class="sched-act-btn">Edit</button>
               <button class="sched-act-btn del">Delete</button>
@@ -398,19 +438,31 @@
           </div>
         </div>
       </div>
+
       <!-- Cancelled -->
       <div class="sched-item">
         <div class="sched-time-col">
           <div class="sched-time">14:00</div>
-          <div class="sched-date">Wed 3 Jul</div>
+          <div class="sched-date">Tue 26 May</div>
         </div>
         <div class="sched-axis">
           <div class="sched-dot s-cancelled"></div>
         </div>
         <div class="sched-card s-cancelled">
-          <div class="sched-card-detail">Day trip to Nikko</div>
+          <div class="sched-card-detail">Day trip to Nikko National Park</div>
+          <div class="sched-card-meta">
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              Nikko, Tochigi
+            </div>
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              ฿1,200
+            </div>
+          </div>
+          <div class="sched-note">Cancelled — heavy rain forecast</div>
           <div class="sched-card-footer">
-            <span class="sched-badge s-cancelled">Cancelled</span>
+            <span class="sched-badge s-cancelled">🌧️ Cancelled</span>
             <div class="sched-card-actions">
               <button class="sched-act-btn">Edit</button>
               <button class="sched-act-btn del">Delete</button>
@@ -418,6 +470,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 

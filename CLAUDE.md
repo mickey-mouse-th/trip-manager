@@ -194,6 +194,10 @@ var(--shadow-lg)      /* box-shadow ใหญ่ */
 
 | วันที่ | การเปลี่ยนแปลง | ไฟล์ที่เกี่ยวข้อง |
 |--------|---------------|-----------------|
+| 2026-05-24 | Auto-mock บน localhost — `location.hostname === 'localhost'` หรือ `file://` จะ `setupMock()` อัตโนมัติ ไม่ต้องตั้ง `localStorage.dev_mock` อีกต่อไป | `Script.html`, `build-preview.js` |
+| 2026-05-24 | Mock data ครบทุก trip status — เพิ่ม schedules ให้ TRIP-4 (Cancelled) และ TRIP-5 (New York) + ทุก trip มี schedule ครบ 4 statuses (Confirmed/Planning/Done/Cancelled) | `Script.html` |
+| 2026-05-24 | Components.html — Trip Cards และ Schedule Timeline ครบทุก status พร้อม content สม่ำเสมอ | `Components.html` |
+| 2026-05-24 | เปลี่ยน status colors ให้สื่ออารมณ์ — Planning: Indigo (💭 ฝัน), Active: Amber (🔥 พลัง), Done: Teal (🌿 สำเร็จ), Cancelled: Slate (🌧️ หมดแรง) | `Style.html` |
 | 2026-05-24 | สร้าง `Components.html` — component library showcase ครอบคลุม: Color Tokens, Status Colors, Buttons, Stat Pills, Form Inputs, Trip Cards, Schedule Timeline, Select2 variants, Shadows & Radius | `Components.html` |
 | 2026-05-24 | อัปเดต `build-preview.js` — build `components-preview.html` จาก `Components.html` พร้อมกับ `preview.html` | `build-preview.js` |
 | 2026-05-24 | Global scrollbar hiding บน Select2 ทุกที่ — `scrollbar-width: none` + `::-webkit-scrollbar { display: none }` | `Style.html` |
