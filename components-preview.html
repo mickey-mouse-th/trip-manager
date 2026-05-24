@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Manager — Component Library</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
+  <style>
+  /* ── Reset & tokens ──────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --c-primary:    #4f46e5;
+    --c-primary-dk: #3730a3;
+    --c-danger:     #ef4444;
+    --c-danger-dk:  #dc2626;
+    --c-surface:    #ffffff;
+    --c-bg:         #f1f5f9;
+    --c-border:     #e2e8f0;
+    --c-text:       #0f172a;
+    --c-text-muted: #64748b;
+
+    --s-planning:   #eef2ff; --s-planning-t:   #4338ca;  /* Indigo — จินตนาการ ความฝัน */
+    --s-active:     #fffbeb; --s-active-t:     #b45309;  /* Amber  — ตื่นเต้น มีพลัง  */
+    --s-done:       #f0fdfa; --s-done-t:       #0f766e;  /* Teal   — สงบ สำเร็จ      */
+    --s-completed:  #f0fdfa; --s-completed-t:  #0f766e;
+    --s-cancelled:  #f8fafc; --s-cancelled-t:  #475569;  /* Slate  — เลือนหาย หมดแรง */
+
+    --grad-planning:   linear-gradient(135deg, #4338ca 0%, #818cf8 100%);
+    --grad-active:     linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+    --grad-done:       linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
+    --grad-completed:  linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
+    --grad-cancelled:  linear-gradient(135deg, #475569 0%, #94a3b8 100%);
+
+    --r:    16px;
+    --r-sm: 12px;
+    --shadow:    0 1px 3px rgba(0,0,0,.05), 0 4px 16px rgba(0,0,0,.06);
+    --shadow-lg: 0 24px 64px rgba(0,0,0,.18);
+    --ease: .2s ease;
+  }
+
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'Google Sans', Roboto, Arial, sans-serif;
+    font-size: 15px;
+    color: var(--c-text);
+    background: var(--c-bg);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ──────────────────────────────────────────── */
+  .app-header {
+    background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 100%);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .app-header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .app-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -.2px;
+  }
+  .app-logo svg { stroke: rgba(255,255,255,.9); flex-shrink: 0; }
+  .btn-header-add {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,.3);
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--ease);
+  }
+  .btn-header-add:hover { background: rgba(255,255,255,.28); }
+  @media (min-width: 640px) { .btn-header-add { display: flex; } }
+
+  /* ── Main ────────────────────────────────────────────── */
+  .app-main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px 16px 100px;
+  }
+  @media (min-width: 640px) { .app-main { padding: 28px 24px 48px; } }
+
+  /* ── Stats pills ─────────────────────────────────────── */
+  .stats-strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    margin-bottom: 16px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .stats-strip::-webkit-scrollbar { display: none; }
+
+  .stat-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 10px 20px;
+    border-radius: 14px;
+    border: 2px solid transparent;
+    background: var(--c-surface);
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: var(--shadow);
+    transition: border-color var(--ease), background var(--ease), transform var(--ease);
+  }
+  .stat-pill:active { transform: scale(.97); }
+  .stat-num { font-size: 22px; font-weight: 800; line-height: 1; letter-spacing: -.5px; }
+  .stat-lbl { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; color: var(--c-text-muted); }
+  .stat-pill[data-selected] .stat-lbl { color: inherit; }
+
+  .stat-pill.active .stat-num            { color: var(--c-primary); }
+  .stat-pill.active[data-selected]       { border-color: var(--c-primary); background: #ede9fe; }
+
+  .stat-pill.planning .stat-num          { color: var(--s-planning-t); }
+  .stat-pill.planning[data-selected]     { border-color: var(--s-planning-t); background: var(--s-planning); }
+
+  .stat-pill.active-trip .stat-num       { color: var(--s-active-t); }
+  .stat-pill.active-trip[data-selected]  { border-color: var(--s-active-t); background: var(--s-active); }
+
+  .stat-pill.done .stat-num              { color: var(--s-done-t); }
+  .stat-pill.done[data-selected]         { border-color: var(--s-done-t); background: var(--s-done); }
+  .stat-pill.completed .stat-num         { color: var(--s-completed-t); }
+  .stat-pill.completed[data-selected]    { border-color: var(--s-completed-t); background: var(--s-completed); }
+
+  .stat-pill.cancelled .stat-num         { color: var(--s-cancelled-t); }
+  .stat-pill.cancelled[data-selected]    { border-color: var(--s-cancelled-t); background: var(--s-cancelled); }
+
+  /* ── Toolbar ─────────────────────────────────────────── */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 16px; }
+  .search-wrap { position: relative; flex: 1; }
+  .search-icon {
+    position: absolute; left: 14px; top: 50%;
+    transform: translateY(-50%);
+    stroke: var(--c-text-muted); pointer-events: none;
+  }
+  .search-input {
+    width: 100%; height: 48px;
+    padding: 0 40px 0 44px;
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--r);
+    background: var(--c-surface);
+    font-size: 15px; color: var(--c-text);
+    -webkit-appearance: none;
+    box-shadow: var(--shadow);
+  }
+  .search-clear {
+    position: absolute; right: 10px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--c-text-muted); padding: 4px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .filter-wrap { flex-shrink: 0; }
+
+  /* ── Trip list ───────────────────────────────────────── */
+  .trip-list { display: flex; flex-direction: column; gap: 14px; }
+  @media (min-width: 640px) {
+    .trip-list { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .trip-list .loading-state { grid-column: 1 / -1; }
+  }
+
+  /* ── Trip card ───────────────────────────────────────── */
+  .trip-card {
+    background: var(--c-surface);
+    border-radius: var(--r);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow .25s ease, transform .25s ease;
+  }
+  @media (min-width: 640px) {
+    .trip-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,.12); transform: translateY(-2px); }
+  }
+  .trip-card:active { transform: scale(.99); }
+  .status-cancelled { opacity: .78; }
+
+  /* Banner strip */
+  .trip-card-banner {
+    height: 60px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+    padding: 0 14px 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .trip-card-banner::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle, rgba(255,255,255,.15) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+  }
+  .status-planning  .trip-card-banner { background: var(--grad-planning); }
+  .status-active    .trip-card-banner { background: var(--grad-active); }
+  .status-done      .trip-card-banner { background: var(--grad-done); }
+  .status-completed .trip-card-banner { background: var(--grad-completed); }
+  .status-cancelled .trip-card-banner { background: var(--grad-cancelled); }
+
+  .trip-card-body { flex: 1; padding: 14px 16px 10px; min-width: 0; }
+  .trip-card-name {
+    font-size: 16px; font-weight: 700;
+    color: var(--c-text); line-height: 1.3;
+    margin-bottom: 6px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .trip-card-dest {
+    font-size: 13px; color: var(--c-text-muted);
+    display: flex; align-items: center; gap: 4px;
+    margin-bottom: 5px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .trip-card-meta {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--c-text-muted);
+  }
+  .trip-days-pill {
+    display: inline-flex; align-items: center;
+    background: var(--c-bg); border-radius: 6px;
+    padding: 1px 6px; font-size: 11px; font-weight: 600;
+    color: var(--c-text-muted); margin-left: 4px;
+  }
+  .trip-card-notes {
+    font-size: 12px; color: var(--c-text-muted);
+    margin-top: 8px; line-height: 1.5;
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+    padding-top: 8px; border-top: 1px solid var(--c-border);
+  }
+
+  /* Action row */
+  .trip-card-actions { display: flex; border-top: 1px solid var(--c-border); }
+  .card-action-btn {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    padding: 12px 6px;
+    background: none; border: none; cursor: pointer;
+    color: var(--c-text-muted);
+    font-size: 12px; font-weight: 500;
+    transition: background var(--ease), color var(--ease);
+  }
+  .card-action-btn + .card-action-btn { border-left: 1px solid var(--c-border); }
+  .card-action-btn:hover       { background: var(--c-bg); color: var(--c-text); }
+  .card-action-btn.sched:hover { background: var(--s-planning); color: var(--s-planning-t); }
+  .card-action-btn.del:hover   { background: var(--s-cancelled); color: var(--c-danger); }
+
+  /* ── Status badge ────────────────────────────────────── */
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    white-space: nowrap; flex-shrink: 0;
+    position: relative; z-index: 1;
+    border: 1.5px solid rgba(255,255,255,.4);
+    backdrop-filter: blur(4px);
+  }
+  .badge-planning  { background: rgba(255,255,255,.25); color: #fff; }
+  .badge-active    { background: rgba(255,255,255,.25); color: #fff; }
+  .badge-done      { background: rgba(255,255,255,.25); color: #fff; }
+  .badge-completed { background: rgba(255,255,255,.25); color: #fff; }
+  .badge-cancelled { background: rgba(255,255,255,.25); color: #fff; }
+
+  /* ── Buttons ─────────────────────────────────────────── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    height: 44px; padding: 0 20px;
+    border: none; border-radius: var(--r-sm);
+    font-size: 15px; font-weight: 600;
+    cursor: pointer; transition: background var(--ease), transform var(--ease);
+    white-space: nowrap; -webkit-tap-highlight-color: transparent;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:active:not(:disabled) { transform: scale(.98); }
+  .btn-primary { background: var(--c-primary); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--c-primary-dk); }
+  .btn-ghost   { background: transparent; color: var(--c-text-muted); }
+  .btn-ghost:hover:not(:disabled) { background: var(--c-bg); }
+  .btn-danger  { background: var(--c-danger); color: #fff; }
+  .btn-danger:hover:not(:disabled) { background: var(--c-danger-dk); }
+  .btn-spinner {
+    width: 15px; height: 15px;
+    border: 2px solid rgba(255,255,255,.35); border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: inline-block;
+  }
+
+  /* ── FAB ─────────────────────────────────────────────── */
+  .fab {
+    position: fixed;
+    bottom: calc(24px + env(safe-area-inset-bottom));
+    right: 20px;
+    width: 58px; height: 58px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(79,70,229,.5);
+    z-index: 90;
+    transition: transform .2s ease, box-shadow .2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .fab:hover  { transform: scale(1.05); }
+  .fab:active { transform: scale(.94); }
+  @media (min-width: 640px) { .fab { display: none; } }
+
+  /* ── Bottom sheet ────────────────────────────────────── */
+  .sheet-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,.55);
+    z-index: 200;
+    animation: fade-in .2s ease;
+  }
+  .sheet {
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    background: var(--c-surface);
+    border-radius: 24px 24px 0 0;
+    max-height: 92dvh; overflow-y: auto;
+    z-index: 210;
+    padding-bottom: env(safe-area-inset-bottom);
+    transform: translateY(100%);
+    transition: transform .32s cubic-bezier(.32,.72,0,1);
+  }
+  .sheet.open { transform: translateY(0); }
+
+  @media (min-width: 640px) {
+    .sheet {
+      left: 50%; right: auto; bottom: auto; top: 50%;
+      width: 540px;
+      border-radius: var(--r);
+      max-height: 90vh;
+      transform: translate(-50%, -48%) scale(.96);
+      opacity: 0;
+      transition: transform .22s ease, opacity .22s ease;
+    }
+    .sheet.open { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    .sheet-handle { display: none; }
+  }
+
+  .sheet-sm { max-height: 60dvh; }
+  @media (min-width: 640px) { .sheet-sm { width: 400px; } }
+
+  .sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--c-border); border-radius: 4px;
+    margin: 14px auto 0;
+  }
+  .sheet-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px 8px;
+  }
+  .sheet-title { font-size: 18px; font-weight: 700; }
+  .sheet-close {
+    background: var(--c-bg); border: none; cursor: pointer;
+    color: var(--c-text-muted);
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: background var(--ease);
+  }
+  .sheet-close:hover { background: var(--c-border); }
+  .sheet-body {
+    padding: 16px 20px;
+    display: flex; flex-direction: column; gap: 24px;
+  }
+  .sheet-footer {
+    display: flex; gap: 10px;
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--c-border);
+  }
+  .sheet-footer .btn { flex: 1; }
+
+  /* ── Form ────────────────────────────────────────────── */
+  .sheet-body form {
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { display: flex; flex-direction: column; gap: 8px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--c-text); }
+  .req { color: var(--c-danger); }
+  .form-input {
+    width: 100%; height: 48px; padding: 0 13px;
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--r-sm);
+    font-size: 16px; color: var(--c-text);
+    background: var(--c-surface);
+    -webkit-appearance: none;
+    transition: border-color var(--ease);
+  }
+  .form-input.error { border-color: var(--c-danger); }
+  .form-textarea {
+    height: auto; padding: 12px 13px;
+    resize: none; font-family: inherit; line-height: 1.5;
+  }
+  .confirm-msg { font-size: 15px; color: var(--c-text-muted); line-height: 1.6; }
+  .confirm-msg strong { color: var(--c-text); }
+
+  /* Hide native selects before Select2 initialises — prevents flash */
+  .filter-select2, .form-select2, .sched-status-s2 { display: none; }
+
+  /* ── Select2 overrides ───────────────────────────────── */
+  .filter-wrap .select2-container { width: auto !important; min-width: 140px; }
+  .filter-wrap .select2-container--default .select2-selection--single {
+    height: 48px; border: 1.5px solid var(--c-border);
+    border-radius: var(--r); display: flex; align-items: center;
+    background: var(--c-surface); box-shadow: var(--shadow);
+  }
+  .filter-wrap .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 48px; padding-left: 14px; padding-right: 32px;
+    font-size: 15px; color: var(--c-text);
+  }
+  .filter-wrap .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 48px; right: 8px;
+  }
+  .sheet-body .select2-container { width: 100% !important; }
+  .sheet-body .select2-container--default .select2-selection--single {
+    height: 48px; border: 1.5px solid var(--c-border);
+    border-radius: var(--r-sm); display: flex; align-items: center;
+  }
+  .sheet-body .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 48px; padding-left: 13px; padding-right: 36px;
+    font-size: 16px; color: var(--c-text);
+  }
+  .sheet-body .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 48px; right: 10px;
+  }
+  .select2-dropdown {
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--r-sm);
+    box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  /* Hide scrollbar globally on all Select2 dropdowns, but keep scrollable */
+  .select2-results__options {
+    scrollbar-width: none;
+  }
+  .select2-results__options::-webkit-scrollbar { display: none; }
+  .select2-container--default .select2-results__option { padding: 12px 14px; font-size: 15px; }
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background: var(--c-primary);
+  }
+  .select2-container--default .select2-results__option[aria-selected=true] {
+    background: #ede9fe; color: var(--c-primary); font-weight: 600;
+  }
+  .select2-search--dropdown .select2-search__field {
+    border: 1px solid var(--c-border); border-radius: 6px;
+    padding: 8px 10px; font-size: 14px;
+  }
+
+  /* ── Loading / Empty ─────────────────────────────────── */
+  .loading-state {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 14px; padding: 64px 24px;
+    color: var(--c-text-muted); text-align: center;
+  }
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 10px; padding: 56px 24px;
+    color: var(--c-text-muted); text-align: center;
+  }
+  .empty-icon {
+    width: 80px; height: 80px;
+    background: var(--c-bg); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 4px;
+  }
+  .empty-state h3 { font-size: 17px; font-weight: 700; color: var(--c-text); }
+  .empty-state p  { font-size: 14px; margin-bottom: 8px; }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--c-border); border-top-color: var(--c-primary);
+    border-radius: 50%;
+    animation: spin .75s linear infinite;
+  }
+
+  /* ── Toast ───────────────────────────────────────────── */
+  .toast-container {
+    position: fixed;
+    bottom: calc(20px + env(safe-area-inset-bottom));
+    left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center;
+    gap: 8px; z-index: 400; pointer-events: none;
+    width: calc(100% - 32px); max-width: 400px;
+  }
+  .toast {
+    width: 100%; padding: 13px 18px;
+    border-radius: var(--r-sm);
+    background: #1e293b; color: #fff;
+    font-size: 14px; font-weight: 500;
+    box-shadow: var(--shadow-lg);
+    animation: slide-up .22s ease;
+    text-align: center;
+  }
+  .toast-success { background: #15803d; }
+  .toast-error   { background: var(--c-danger); }
+
+  /* ── Login screen ───────────────────────────────────── */
+  .login-screen {
+    position: fixed; inset: 0;
+    background: #07071a;
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+    overflow: hidden;
+    transition: opacity .35s ease;
+  }
+  .login-screen.fade-out { opacity: 0; pointer-events: none; }
+
+  /* Floating glow orbs */
+  .login-orb {
+    position: absolute; border-radius: 50%;
+    filter: blur(72px); pointer-events: none;
+    animation: orb-drift 10s ease-in-out infinite;
+  }
+  .login-orb-1 {
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(79,70,229,.55) 0%, transparent 70%);
+    top: -160px; left: -140px;
+    animation-duration: 12s;
+  }
+  .login-orb-2 {
+    width: 380px; height: 380px;
+    background: radial-gradient(circle, rgba(124,58,237,.45) 0%, transparent 70%);
+    bottom: -100px; right: -80px;
+    animation-duration: 9s; animation-delay: -4s;
+  }
+  .login-orb-3 {
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(219,39,119,.35) 0%, transparent 70%);
+    top: 45%; left: 55%;
+    animation-duration: 14s; animation-delay: -7s;
+  }
+  .login-orb-4 {
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(6,182,212,.3) 0%, transparent 70%);
+    bottom: 20%; left: 5%;
+    animation-duration: 11s; animation-delay: -2s;
+  }
+  @keyframes orb-drift {
+    0%,100% { transform: translate(0,0) scale(1); }
+    33%      { transform: translate(28px,-24px) scale(1.06); }
+    66%      { transform: translate(-18px,18px) scale(.94); }
+  }
+
+  /* Glass card */
+  .login-box {
+    background: rgba(255,255,255,.055);
+    border: 1px solid rgba(255,255,255,.11);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-radius: 24px;
+    padding: 36px 32px 32px;
+    width: 100%; max-width: 400px;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset,
+                0 32px 80px rgba(0,0,0,.55);
+    animation: slide-up .32s ease;
+    position: relative; z-index: 1;
+  }
+
+  /* Logo */
+  .login-logo {
+    display: flex; align-items: center; gap: 13px;
+    margin-bottom: 32px;
+  }
+  .login-logo-icon {
+    width: 50px; height: 50px; border-radius: 15px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 24px rgba(99,82,220,.6);
+  }
+  .login-logo-icon svg { stroke: #fff; }
+  .login-logo-text { display: flex; flex-direction: column; gap: 1px; }
+  .login-logo-name { font-size: 17px; font-weight: 800; color: #fff; letter-spacing: -.3px; line-height: 1; }
+  .login-logo-tag  { font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .2px; }
+
+  .login-title {
+    font-size: 22px; font-weight: 800;
+    color: #fff; margin-bottom: 5px; letter-spacing: -.3px;
+  }
+  .login-sub {
+    font-size: 13px; color: rgba(255,255,255,.45);
+    margin-bottom: 22px; line-height: 1.5;
+  }
+  .login-sub strong { color: rgba(255,255,255,.7); }
+
+  /* Form fields inside login */
+  .login-box form { display: flex; flex-direction: column; gap: 16px; }
+  .login-box .form-group { gap: 6px; }
+  .login-box .form-label {
+    font-size: 11px; font-weight: 700;
+    color: rgba(255,255,255,.55);
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .login-box .form-input {
+    background: rgba(255,255,255,.07);
+    border: 1.5px solid rgba(255,255,255,.1);
+    color: #fff;
+    border-radius: 12px;
+  }
+  .login-box .form-input::placeholder { color: rgba(255,255,255,.25); }
+  .login-box .form-input:hover {
+    background: rgba(255,255,255,.1);
+    border-color: rgba(255,255,255,.2);
+  }
+  .login-box .form-input:disabled {
+    opacity: .5; cursor: not-allowed;
+  }
+
+  /* CTA button */
+  .login-btn {
+    width: 100%; height: 50px; margin-top: 6px;
+    border-radius: 13px; font-size: 15px; font-weight: 700;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    box-shadow: 0 4px 22px rgba(99,82,220,.45);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .login-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(99,82,220,.6);
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%);
+  }
+  .login-btn:active:not(:disabled) { transform: scale(.98); }
+
+  /* Switch link */
+  .login-switch {
+    text-align: center; font-size: 13px;
+    color: rgba(255,255,255,.4); margin-top: 18px;
+  }
+  .login-switch a {
+    color: #a5b4fc; font-weight: 600; text-decoration: none;
+    transition: color .15s;
+  }
+  .login-switch a:hover { color: #c7d2fe; }
+
+  /* Error banner */
+  .login-error {
+    background: rgba(239,68,68,.15);
+    border: 1px solid rgba(239,68,68,.3);
+    color: #fca5a5;
+    border-radius: 10px;
+    padding: 10px 13px; font-size: 13px; margin-bottom: 16px;
+  }
+
+  /* Divider */
+  .login-divider {
+    color: rgba(255,255,255,.25);
+  }
+  .login-divider::before,
+  .login-divider::after { background: rgba(255,255,255,.1); }
+
+  /* Google button */
+  .login-box .btn-google {
+    background: rgba(255,255,255,.06);
+    border: 1.5px solid rgba(255,255,255,.1);
+    color: #fff; border-radius: 13px; height: 48px;
+    font-size: 14px;
+  }
+  .login-box .btn-google:hover {
+    background: rgba(255,255,255,.11);
+    border-color: rgba(255,255,255,.2);
+  }
+
+  /* ── Header right ────────────────────────────────────── */
+  .header-right { display: flex; align-items: center; gap: 8px; }
+
+  .btn-header-users {
+    display: flex;
+    align-items: center; gap: 6px;
+    padding: 7px 14px;
+    background: rgba(255,255,255,.14);
+    color: rgba(255,255,255,.9);
+    border: 1.5px solid rgba(255,255,255,.25);
+    border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: background var(--ease);
+  }
+  .btn-header-users:hover { background: rgba(255,255,255,.24); }
+
+  .header-user {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .header-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    border: 2px solid rgba(255,255,255,.4);
+    color: #fff; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; text-transform: uppercase;
+  }
+  .header-user-info {
+    display: flex; flex-direction: column;
+    line-height: 1.2;
+  }
+  .hidden-xs { display: none; }
+  @media (min-width: 480px) { .hidden-xs { display: flex; } }
+  .header-user-name { font-size: 13px; font-weight: 600; color: #fff; }
+  .header-user-role {
+    font-size: 11px; color: rgba(255,255,255,.65);
+    text-transform: capitalize;
+  }
+  .btn-logout {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: rgba(255,255,255,.12); border: none;
+    color: rgba(255,255,255,.8); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background var(--ease);
+  }
+  .btn-logout:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+  /* ── Role-based visibility ───────────────────────────── */
+  /* viewer: no add/edit/delete/export — can still click Plan to view schedules */
+  body.role-viewer .btn-header-add,
+  body.role-viewer .btn-add-trip-fab,
+  body.role-viewer #btn-empty-add,
+  body.role-viewer .card-action-btn[data-action="edit"],
+  body.role-viewer .card-action-btn[data-action="delete"],
+  body.role-viewer .btn-add-sched,
+  body.role-viewer #btn-empty-schedule,
+  body.role-viewer .btn-export-pdf,
+  body.role-viewer .sched-act-btn { display: none !important; }
+
+  /* staff: no delete */
+  body.role-staff .card-action-btn[data-action="delete"],
+  body.role-staff .sched-act-btn.del,
+  body.role-staff #confirm-delete { display: none !important; }
+
+  /* non-admin: hide users button */
+  body:not(.role-admin) .btn-header-users { display: none !important; }
+
+  /* staff/admin: show FAB (mobile) */
+  body.role-admin .fab,
+  body.role-staff .fab { display: flex !important; }
+
+  /* ── Users management sheet ──────────────────────────── */
+  #users-backdrop { z-index: 260; }
+  #users-sheet    { z-index: 270; max-height: 95dvh; }
+  @media (min-width: 640px) { #users-sheet { width: 560px; } }
+
+  .users-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .user-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 13px 16px;
+    background: var(--c-bg); border-radius: var(--r-sm);
+    border: 1px solid var(--c-border);
+  }
+  .user-row.inactive { opacity: .5; }
+  .user-avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: #fff;
+    flex-shrink: 0; text-transform: uppercase;
+  }
+  .ua-admin    { background: linear-gradient(135deg, #4f46e5, #7c3aed); }
+  .ua-staff    { background: linear-gradient(135deg, #0284c7, #38bdf8); }
+  .ua-viewer   { background: linear-gradient(135deg, #475569, #94a3b8); }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 14px; font-weight: 600; color: var(--c-text); }
+  .user-meta { font-size: 11px; color: var(--c-text-muted); margin-top: 1px; }
+
+  .user-role-select {
+    height: 34px; padding: 0 10px;
+    border: 1.5px solid var(--c-border); border-radius: 8px;
+    font-size: 13px; font-weight: 600; color: var(--c-text);
+    background: var(--c-surface); cursor: pointer;
+    flex-shrink: 0;
+  }
+  .toggle-active {
+    width: 38px; height: 22px; border-radius: 11px;
+    border: none; cursor: pointer; flex-shrink: 0;
+    position: relative; transition: background .2s ease;
+    background: var(--c-border);
+  }
+  .toggle-active::after {
+    content: ''; position: absolute;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; top: 3px; left: 3px;
+    transition: transform .2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle-active.on { background: var(--s-active-t); }
+  .toggle-active.on::after { transform: translateX(16px); }
+
+  /* ── Google button & login divider ──────────────────── */
+  .login-divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 16px 0; color: var(--c-text-muted); font-size: 12px;
+  }
+  .login-divider::before,
+  .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--c-border); }
+
+  .btn-google {
+    width: 100%; height: 48px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--c-surface);
+    border: 1.5px solid var(--c-border);
+    border-radius: var(--r-sm);
+    font-size: 14px; font-weight: 600; color: var(--c-text);
+    cursor: pointer;
+    transition: background var(--ease), border-color var(--ease);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-google:hover { background: var(--c-bg); border-color: #a0aec0; }
+  .btn-google:active { transform: scale(.98); }
+
+  /* ── Profile sheet ───────────────────────────────────── */
+  #profile-backdrop { z-index: 250; }
+  #profile-sheet    { z-index: 255; }
+  @media (min-width: 640px) { #profile-sheet { width: 480px; } }
+
+  .profile-avatar-row {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 8px 0 4px;
+  }
+  .profile-avatar-lg {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 800; color: #fff;
+    text-transform: uppercase;
+    box-shadow: 0 4px 16px rgba(79,70,229,.35);
+  }
+  .profile-user-name { font-size: 16px; font-weight: 700; color: var(--c-text); }
+  .profile-user-role {
+    font-size: 12px; color: var(--c-text-muted);
+    text-transform: capitalize; margin-top: -4px;
+  }
+
+  .profile-section-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .6px; color: var(--c-text-muted); margin-bottom: 12px;
+  }
+
+  /* Language grid */
+  .lang-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  }
+  .lang-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 12px 8px;
+    border: 2px solid var(--c-border); border-radius: var(--r-sm);
+    background: var(--c-surface); cursor: pointer;
+    transition: border-color var(--ease), background var(--ease);
+    font-size: 13px; font-weight: 600; color: var(--c-text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .lang-btn span:first-child { font-size: 22px; line-height: 1; }
+  .lang-btn:hover { border-color: var(--c-primary); background: #ede9fe; }
+  .lang-btn.selected { border-color: var(--c-primary); background: #ede9fe; color: var(--c-primary); }
+
+  /* clickable avatar */
+  .header-avatar { cursor: pointer; transition: opacity var(--ease); }
+  .header-avatar:hover { opacity: .8; }
+
+  /* ── Sheet header actions group ─────────────────────────── */
+  .sheet-header-actions {
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  }
+
+  /* Cancel / Restore icon button in trip sheet header */
+  .btn-sheet-status {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--s-cancelled); color: var(--s-cancelled-t);
+    transition: background var(--ease), color var(--ease), transform var(--ease);
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-sheet-status:hover   { background: #fecdd3; transform: scale(1.08); }
+  .btn-sheet-status:active  { transform: scale(.92); }
+  .btn-sheet-status.restore { background: var(--s-active); color: var(--s-active-t); }
+  .btn-sheet-status.restore:hover { background: #bbf7d0; }
+
+  /* Cancelled-state banner inside trip form */
+  .cancelled-banner {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: var(--s-cancelled); color: var(--s-cancelled-t);
+    border: 1.5px solid #fca5a5;
+    border-radius: var(--r-sm);
+    font-size: 13px; font-weight: 600;
+    animation: slide-up .18s ease;
+  }
+
+  /* ── Animations ──────────────────────────────────────── */
+  @keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes spin     { to { transform: rotate(360deg); } }
+
+  /* ── Utils ───────────────────────────────────────────── */
+  .hidden { display: none !important; }
+
+  /* Hide everything during initial auth check — prevents flash of trip list */
+  .app-booting { visibility: hidden; }
+
+  /* Search highlight */
+  .search-hl {
+    background: #fef9c3;
+    color: #78350f;
+    border-radius: 2px;
+    padding: 0 1px;
+    font-style: normal;
+  }
+
+  /* ── Schedule list sheet ─────────────────────────────── */
+  #schedule-backdrop { z-index: 215; }
+  #schedule-sheet    { z-index: 220; max-height: 95dvh; }
+  @media (min-width: 640px) { #schedule-sheet { width: 600px; } }
+  .sheet-full { max-height: 95dvh; }
+
+  .sheet-back {
+    background: none; border: none; cursor: pointer;
+    color: var(--c-text-muted);
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--ease);
+  }
+  .sheet-back:hover { background: var(--c-bg); }
+
+  .sheet-header-info { flex: 1; min-width: 0; padding: 0 8px; }
+  .sheet-header-info .sheet-title {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sheet-subtitle {
+    font-size: 12px; color: var(--c-text-muted);
+    margin-top: 1px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .btn-export-pdf {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: transparent; color: var(--c-text-muted);
+    border: 1.5px solid var(--c-border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    transition: background var(--ease), color var(--ease), border-color var(--ease);
+  }
+  .btn-export-pdf:hover { background: #fef2f2; color: var(--c-danger); border-color: var(--c-danger); }
+
+  .btn-add-sched {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--c-primary); color: #fff; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0;
+    margin-left: 10px;
+    transition: background var(--ease), transform var(--ease);
+  }
+  .btn-add-sched:hover { background: var(--c-primary-dk); }
+  .btn-add-sched:active { transform: scale(.93); }
+
+  .sched-body { padding-top: 4px; gap: 0; }
+
+  /* ── Schedule form sheet (higher z) ─────────────────── */
+  .sched-form-bd    { z-index: 230; }
+  .sched-form-sheet { z-index: 240; }
+  @media (min-width: 640px) { .sched-form-sheet { width: 520px; } }
+
+  /* ── Timeline ────────────────────────────────────────── */
+  .schedule-timeline { padding: 4px 18px 28px; }
+
+  .sched-item { display: flex; gap: 0; padding-bottom: 0; }
+
+  /* ── Time column ─────────────────────────────────────── */
+  .sched-time-col {
+    width: 58px; flex-shrink: 0;
+    text-align: right; padding-top: 11px; padding-right: 14px;
+  }
+  .sched-time {
+    font-size: 13px; font-weight: 800; color: var(--c-text);
+    line-height: 1.15; letter-spacing: -.3px;
+  }
+  .sched-date {
+    font-size: 10px; font-weight: 500; color: var(--c-text-muted);
+    margin-top: 3px; letter-spacing: .1px;
+  }
+
+  /* ── Axis (dot + connector) ──────────────────────────── */
+  .sched-axis {
+    display: flex; flex-direction: column;
+    align-items: center; flex-shrink: 0; width: 28px;
+  }
+  .sched-dot {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0; margin-top: 9px;
+    border: 2.5px solid currentColor;
+    background: var(--c-surface);
+    transition: transform .18s ease, box-shadow .18s ease;
+  }
+  .sched-dot.s-planning {
+    color: var(--s-planning-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-planning-t) 14%, transparent);
+  }
+  .sched-dot.s-confirmed {
+    color: var(--s-active-t); background: var(--s-active-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-active-t) 18%, transparent),
+                0 2px 10px color-mix(in srgb, var(--s-active-t) 32%, transparent);
+  }
+  .sched-dot.s-done {
+    color: var(--s-completed-t); background: var(--s-completed-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-completed-t) 14%, transparent);
+  }
+  .sched-dot.s-cancelled {
+    color: var(--s-cancelled-t);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--s-cancelled-t) 12%, transparent);
+  }
+
+  .sched-line {
+    width: 2px; flex: 1;
+    background: linear-gradient(to bottom, var(--c-border) 40%, transparent);
+    margin: 6px 0 0; min-height: 20px;
+  }
+  .sched-item:last-child .sched-line { display: none; }
+
+  /* ── Card ────────────────────────────────────────────── */
+  .sched-card {
+    flex: 1; min-width: 0;
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-left: 3.5px solid currentColor;
+    border-radius: 10px;
+    padding: 12px 14px 11px;
+    margin-bottom: 14px; margin-left: 2px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.055), 0 1px 2px rgba(0,0,0,.04);
+    transition: box-shadow .18s ease, transform .18s ease;
+  }
+  .sched-card:hover {
+    box-shadow: 0 6px 22px rgba(0,0,0,.1), 0 1px 4px rgba(0,0,0,.05);
+    transform: translateY(-1px);
+  }
+  .sched-card.s-planning  { color: var(--s-planning-t); }
+  .sched-card.s-confirmed { color: var(--s-active-t); }
+  .sched-card.s-done      { color: var(--s-completed-t); }
+  .sched-card.s-cancelled { color: var(--s-cancelled-t); }
+
+  .sched-card-detail {
+    font-size: 14px; font-weight: 700;
+    color: var(--c-text); margin-bottom: 7px; line-height: 1.4;
+  }
+  .sched-card-meta {
+    display: flex; flex-direction: column;
+    gap: 5px; font-size: 12px; color: var(--c-text-muted);
+  }
+  .sched-meta-row {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sched-meta-row svg { flex-shrink: 0; opacity: .7; }
+  .sched-meta-row a {
+    color: var(--c-primary); text-decoration: none; font-weight: 500;
+  }
+  .sched-meta-row a:hover { text-decoration: underline; }
+  .sched-note {
+    font-size: 12px; color: var(--c-text-muted);
+    margin-top: 9px; line-height: 1.6;
+    padding: 8px 10px;
+    background: color-mix(in srgb, currentColor 5%, transparent);
+    border-radius: 6px;
+    border-left: 2px solid color-mix(in srgb, currentColor 40%, transparent);
+  }
+  .sched-card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--c-border);
+  }
+  .sched-badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: .2px;
+  }
+  .sched-badge.s-planning  { background: var(--s-planning);  color: var(--s-planning-t); }
+  .sched-badge.s-confirmed { background: var(--s-active);    color: var(--s-active-t); }
+  .sched-badge.s-done      { background: var(--s-completed); color: var(--s-completed-t); }
+  .sched-badge.s-cancelled { background: var(--s-cancelled); color: var(--s-cancelled-t); }
+
+  .sched-card-actions { display: flex; gap: 3px; }
+  .sched-act-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--c-text-muted); padding: 4px 8px;
+    border-radius: 7px; font-size: 12px; font-weight: 500;
+    display: flex; align-items: center; gap: 3px;
+    transition: background var(--ease), color var(--ease);
+  }
+  .sched-act-btn:hover     { background: var(--c-bg); color: var(--c-text); }
+  .sched-act-btn.del:hover { background: var(--s-cancelled); color: var(--c-danger); }
+
+  /* ── Schedule time-aware states ─────────────────────── */
+  @keyframes sched-now-pulse {
+    0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 25%, transparent); }
+    55%       { box-shadow: 0 0 0 10px color-mix(in srgb, currentColor 0%, transparent); }
+  }
+  .sched-dot--now {
+    animation: sched-now-pulse 1.8s ease-in-out infinite;
+  }
+
+  /* Past items — fade gently */
+  .sched-item--past .sched-time-col,
+  .sched-item--past .sched-card     { opacity: .35; transition: opacity var(--ease); }
+  .sched-item--past .sched-dot,
+  .sched-item--past .sched-line     { opacity: .22; transition: opacity var(--ease); }
+
+  /* ── Schedule empty state ────────────────────────────── */
+  .sched-empty {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 10px;
+    padding: 52px 24px; color: var(--c-text-muted); text-align: center;
+  }
+  .sched-empty p { font-size: 14px; }
+
+  /* ── Flatpickr overrides ─────────────────────────────── */
+  .flatpickr-calendar {
+    background: var(--c-surface); border: 1px solid var(--c-border);
+    border-radius: 16px; font-family: inherit;
+    box-shadow: 0 20px 60px rgba(0,0,0,.13), 0 4px 16px rgba(0,0,0,.07);
+    padding: 16px 14px 14px; width: 318px;
+  }
+  .flatpickr-calendar::before, .flatpickr-calendar::after { display: none; }
+
+  /* ── Calendar header ─────────────────────────────────── */
+  .flatpickr-months {
+    display: flex !important; align-items: center !important;
+    padding-bottom: 12px; gap: 2px;
+    position: relative; height: auto !important;
+    border-bottom: 1px solid var(--c-border);
+    margin-bottom: 10px;
+  }
+  .flatpickr-month {
+    flex: 1; height: auto !important; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .flatpickr-current-month {
+    display: flex !important; align-items: center; justify-content: center;
+    gap: 0; padding: 0 !important;
+    width: 100%; position: static !important; left: auto !important; top: auto !important;
+    height: auto !important;
+  }
+  /* Hide original year input — replaced by fp-year-select */
+  .flatpickr-current-month .numInputWrapper { width: auto; }
+  .flatpickr-current-month input.cur-year  { display: none !important; }
+  .numInputWrapper > span { display: none; }
+
+  /* Prev / Next arrows */
+  .flatpickr-prev-month, .flatpickr-next-month {
+    position: static !important; top: auto !important; left: auto !important; right: auto !important;
+    width: 30px; height: 30px; padding: 0; flex-shrink: 0;
+    display: flex !important; align-items: center; justify-content: center;
+    color: var(--c-text-muted);
+    border-radius: 50%; transition: background var(--ease), color var(--ease);
+  }
+  .flatpickr-prev-month:hover, .flatpickr-next-month:hover {
+    background: var(--c-bg); color: var(--c-primary);
+  }
+  .flatpickr-prev-month svg, .flatpickr-next-month svg { fill: currentColor; width: 14px; height: 14px; }
+
+  /* Select2 dropdown must sit above Flatpickr's z-index (99999) */
+  .select2-container--open .select2-dropdown { z-index: 100000 !important; }
+
+  /* ── Select2 for month / year inside Flatpickr header ── */
+  .flatpickr-current-month .select2-container { display: inline-flex !important; }
+  .flatpickr-current-month .select2-container--default .select2-selection--single {
+    height: 32px; border: none; border-radius: 8px;
+    background: var(--c-bg);
+    display: flex; align-items: center;
+    transition: background var(--ease);
+  }
+  .flatpickr-current-month .select2-container--default.select2-container--open .select2-selection--single,
+  .flatpickr-current-month .select2-container--default .select2-selection--single:hover {
+    background: color-mix(in srgb, var(--c-primary) 10%, transparent);
+  }
+  .flatpickr-current-month .select2-container--default .select2-selection--single {
+    justify-content: center;
+  }
+  .flatpickr-current-month .select2-container--default .select2-selection--single
+    .select2-selection__rendered {
+    line-height: 32px; padding-left: 10px; padding-right: 2px;
+    font-size: 14px; font-weight: 700; color: var(--c-text);
+    flex: 0 0 auto; width: auto !important;
+  }
+  .flatpickr-current-month .select2-container--default .select2-selection--single
+    .select2-selection__arrow { display: none !important; }
+  .flatpickr-current-month .select2-container--default .select2-selection--single
+    .select2-selection__rendered { padding-right: 10px; }
+
+  /* Year select (custom element) */
+  .fp-year-select { display: none; } /* hidden — Select2 replaces it */
+
+  /* Fix month Select2 to a constant width so it doesn't jump between short/long month names */
+  .fp-month-s2 { width: 130px !important; min-width: 130px !important; max-width: 130px !important; }
+  .fp-month-s2 .selection { width: 90px !important; }
+  .fp-year-select + .select2-container { width: 70px !important; min-width: 70px !important; max-width: 70px !important; }
+
+  /* ── Flatpickr month/year dropdown list (fp-s2-dropdown) ── */
+  .fp-s2-dropdown {
+    border: 1px solid var(--c-border) !important;
+    border-radius: 10px !important;
+    box-shadow: 0 8px 28px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.07) !important;
+    overflow: hidden;
+  }
+  .fp-s2-dropdown .select2-results { padding: 4px; }
+  .fp-s2-dropdown .select2-results__options { max-height: 220px !important; overflow-y: auto; }
+  .fp-s2-dropdown .select2-results__option {
+    padding: 7px 12px;
+    font-size: 13px; font-weight: 500;
+    border-radius: 7px;
+    color: var(--c-text);
+    transition: background var(--ease), color var(--ease);
+  }
+  .fp-s2-dropdown .select2-results__option--highlighted {
+    background: var(--c-bg) !important; color: var(--c-text) !important;
+  }
+  .fp-s2-dropdown .select2-results__option[aria-selected="true"] {
+    background: color-mix(in srgb, var(--c-primary) 12%, transparent) !important;
+    color: var(--c-primary) !important; font-weight: 700;
+  }
+  .fp-s2-dropdown .select2-results__option--highlighted[aria-selected="true"] {
+    background: color-mix(in srgb, var(--c-primary) 20%, transparent) !important;
+    color: var(--c-primary) !important;
+  }
+
+  /* ── Weekday labels ─── */
+  .flatpickr-weekdays { background: transparent; height: 30px; margin-bottom: 4px; }
+  .flatpickr-weekday  {
+    background: transparent; color: var(--c-text-muted);
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+  }
+
+  /* ── Day grid ─── */
+  .flatpickr-days { width: 100%; border: none; }
+  .dayContainer   { width: 100%; min-width: unset; max-width: unset; padding: 0; gap: 1px; }
+
+  .flatpickr-day {
+    border: none; border-radius: 50%;
+    color: var(--c-text); font-size: 13px; font-weight: 500;
+    height: 38px; line-height: 38px; max-width: 38px;
+    transition: background var(--ease), color var(--ease), transform 80ms ease;
+    flex-basis: 38px;
+  }
+  .flatpickr-day:hover { background: var(--c-bg); color: var(--c-text); border: none; transform: scale(1.08); }
+  .flatpickr-day.today {
+    background: color-mix(in srgb, var(--c-primary) 12%, transparent);
+    border: none; color: var(--c-primary); font-weight: 800;
+  }
+  .flatpickr-day.today:hover {
+    background: color-mix(in srgb, var(--c-primary) 20%, transparent);
+  }
+  .flatpickr-day.selected, .flatpickr-day.selected:hover, .flatpickr-day.selected:focus {
+    background: var(--c-primary); color: #fff; border: none; font-weight: 700;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--c-primary) 50%, transparent);
+    transform: scale(1.1);
+  }
+  .flatpickr-day.flatpickr-disabled, .flatpickr-day.flatpickr-disabled:hover {
+    color: var(--c-text-muted); opacity: .3; transform: none;
+  }
+  .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay { opacity: .35; }
+
+  /* Time picker (inline in date calendar) */
+  .flatpickr-time {
+    height: 46px; border-top: 1px solid var(--c-border);
+    margin-top: 10px; padding-top: 2px; background: transparent;
+  }
+  .flatpickr-time input {
+    color: var(--c-text); font-weight: 700; font-size: 16px;
+    background: transparent; border-radius: 8px; border: none;
+  }
+  .flatpickr-time input:hover, .flatpickr-time input:focus { background: var(--c-bg); }
+  .flatpickr-time .flatpickr-time-separator { color: var(--c-text-muted); font-weight: 700; }
+  .flatpickr-time .numInputWrapper { flex: 1; }
+  .flatpickr-time .numInputWrapper span { display: none; }
+
+  /* Alt-input inherits .form-input style; readonly cursor → pointer */
+  input.flatpickr-input[readonly]     { cursor: pointer; }
+  .flatpickr-input.flatpickr-alt-input { cursor: pointer; }
+
+  /* Propagate .error from hidden original input to visible alt-input */
+  .flatpickr-input.error + .flatpickr-input.flatpickr-alt-input { border-color: var(--c-danger); }
+
+  /* ── Time-only popup (noCalendar) ────────────────────── */
+  .flatpickr-calendar.noCalendar {
+    width: 190px; padding: 18px 16px 16px;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time {
+    height: auto; border-top: none; margin-top: 0; padding: 0;
+    display: flex; align-items: center; justify-content: center; gap: 2px;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time .numInputWrapper {
+    flex: 0 0 64px;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time input {
+    font-size: 34px; font-weight: 800; height: 60px;
+    border-radius: 10px; background: var(--c-bg);
+    border: 1.5px solid var(--c-border); text-align: center; width: 64px;
+    transition: border-color var(--ease);
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time input:hover,
+  .flatpickr-calendar.noCalendar .flatpickr-time input:focus {
+    border-color: var(--c-primary); background: var(--c-bg);
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time .flatpickr-time-separator {
+    font-size: 28px; font-weight: 800; color: var(--c-text-muted);
+    line-height: 60px; padding: 0 2px; flex-shrink: 0;
+  }
+  .flatpickr-calendar.noCalendar .flatpickr-time .numInputWrapper span { display: none; }
+
+  /* ── sf-dt-row — date + time side by side ─────────────── */
+  .sf-dt-row { display: flex; gap: 10px; }
+  .sf-dt-date-wrap { flex: 1; min-width: 0; }
+  .sf-dt-time-wrap {
+    position: relative; flex-shrink: 0; width: 190px;
+  }
+  .sf-time-icon {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    color: var(--c-text-muted); pointer-events: none; z-index: 1;
+  }
+  .sf-dt-time { padding-left: 33px !important; cursor: pointer; }
+  /* alt-input from sf-date fills its wrapper */
+  .sf-dt-date-wrap input { width: 100%; }
+
+  /* ── Select2 overrides for sched-form-sheet ─────────── */
+  .sched-form-sheet .select2-container { width: 100% !important; }
+  .sched-form-sheet .select2-container--default .select2-selection--single {
+    height: 48px; border: 1.5px solid var(--c-border);
+    border-radius: var(--r-sm); display: flex; align-items: center;
+  }
+  .sched-form-sheet .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 48px; padding-left: 13px; padding-right: 36px;
+    font-size: 16px; color: var(--c-text);
+  }
+  .sched-form-sheet .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 48px; right: 10px;
+  }
+
+  /* ── Select2 overrides for users-sheet role select ───── */
+  #users-sheet .select2-container { width: 110px !important; flex-shrink: 0; }
+  #users-sheet .select2-container--default .select2-selection--single {
+    height: 34px; border: 1.5px solid var(--c-border);
+    border-radius: 8px; background: var(--c-surface);
+    display: flex; align-items: center;
+  }
+  #users-sheet .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 34px; padding-left: 10px; padding-right: 28px;
+    font-size: 13px; font-weight: 600; color: var(--c-text);
+  }
+  #users-sheet .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 34px; right: 6px;
+  }
+  #users-sheet .select2-container--default.select2-container--disabled .select2-selection--single {
+    opacity: .45; cursor: not-allowed;
+  }
+</style>
+
+  <style>
+    /* ── Component Library Shell ── */
+    body { background: #f8fafc; }
+    .cl-wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
+    .cl-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 40px; padding-bottom: 24px;
+      border-bottom: 2px solid var(--c-border);
+    }
+    .cl-header-icon {
+      width: 44px; height: 44px; border-radius: 12px;
+      background: var(--c-primary); display: flex; align-items: center; justify-content: center;
+    }
+    .cl-header-icon svg { color: #fff; }
+    .cl-header-title { font-size: 22px; font-weight: 800; color: var(--c-text); }
+    .cl-header-sub { font-size: 13px; color: var(--c-text-muted); margin-top: 2px; }
+
+    .cl-section { margin-bottom: 48px; }
+    .cl-section-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--c-text-muted); margin-bottom: 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--c-border);
+    }
+    .cl-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+    .cl-col { display: flex; flex-direction: column; gap: 8px; }
+    .cl-label { font-size: 11px; color: var(--c-text-muted); font-weight: 500; }
+    .cl-card {
+      background: var(--c-surface); border-radius: var(--r);
+      border: 1px solid var(--c-border); padding: 20px;
+    }
+
+    /* Color swatches */
+    .cl-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cl-swatch { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+    .cl-swatch-box {
+      width: 56px; height: 56px; border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.06);
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    }
+    .cl-swatch-name { font-size: 10px; color: var(--c-text-muted); text-align: center; }
+
+    /* Status pair swatches */
+    .cl-status-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cl-status-pair { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+    .cl-status-box {
+      width: 80px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+
+    /* Form demo */
+    .cl-form-demo { display: flex; flex-direction: column; gap: 12px; max-width: 380px; }
+
+    /* Schedule timeline demo */
+    .cl-sched-demo { padding: 8px 0; }
+  </style>
+</head>
+<body>
+<div class="cl-wrap">
+
+  <!-- Header -->
+  <div class="cl-header">
+    <div class="cl-header-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+      </svg>
+    </div>
+    <div>
+      <div class="cl-header-title">Trip Manager — Component Library</div>
+      <div class="cl-header-sub">Design tokens · UI components · Patterns</div>
+    </div>
+  </div>
+
+  <!-- 1. Color Tokens -->
+  <div class="cl-section">
+    <div class="cl-section-title">Color Tokens</div>
+    <div class="cl-swatches">
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-primary)"></div><div class="cl-swatch-name">--c-primary</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-primary-dk)"></div><div class="cl-swatch-name">--c-primary-dk</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-danger)"></div><div class="cl-swatch-name">--c-danger</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-danger-dk)"></div><div class="cl-swatch-name">--c-danger-dk</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-surface); border-color: var(--c-border)"></div><div class="cl-swatch-name">--c-surface</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-bg)"></div><div class="cl-swatch-name">--c-bg</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-border)"></div><div class="cl-swatch-name">--c-border</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-text)"></div><div class="cl-swatch-name">--c-text</div></div>
+      <div class="cl-swatch"><div class="cl-swatch-box" style="background:var(--c-text-muted)"></div><div class="cl-swatch-name">--c-text-muted</div></div>
+    </div>
+  </div>
+
+  <!-- 2. Status Colors -->
+  <div class="cl-section">
+    <div class="cl-section-title">Status Colors</div>
+    <div class="cl-status-swatches">
+      <div class="cl-status-pair">
+        <div class="cl-status-box" style="background:var(--s-planning);color:var(--s-planning-t)">Planning</div>
+        <div class="cl-swatch-name">--s-planning</div>
+      </div>
+      <div class="cl-status-pair">
+        <div class="cl-status-box" style="background:var(--s-active);color:var(--s-active-t)">Active</div>
+        <div class="cl-swatch-name">--s-active</div>
+      </div>
+      <div class="cl-status-pair">
+        <div class="cl-status-box" style="background:var(--s-done);color:var(--s-done-t)">Done</div>
+        <div class="cl-swatch-name">--s-done</div>
+      </div>
+      <div class="cl-status-pair">
+        <div class="cl-status-box" style="background:var(--s-cancelled);color:var(--s-cancelled-t)">Cancelled</div>
+        <div class="cl-swatch-name">--s-cancelled</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Buttons -->
+  <div class="cl-section">
+    <div class="cl-section-title">Buttons</div>
+    <div class="cl-row">
+      <div class="cl-col">
+        <div class="cl-label">Primary</div>
+        <button class="btn btn-primary">Save Trip</button>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">Ghost</div>
+        <button class="btn btn-ghost">Cancel</button>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">Danger</div>
+        <button class="btn btn-danger">Delete</button>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">Loading</div>
+        <button class="btn btn-primary" disabled>
+          <span>Saving…</span>
+          <span class="btn-spinner"></span>
+        </button>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">FAB</div>
+        <button class="fab" style="position:relative;bottom:auto;right:auto;width:48px;height:48px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Stat Pills -->
+  <div class="cl-section">
+    <div class="cl-section-title">Stat Pills</div>
+    <div class="cl-row">
+      <button class="stat-pill active" data-selected="">
+        <span class="stat-num">12</span><span class="stat-lbl">All</span>
+      </button>
+      <button class="stat-pill planning" data-selected="">
+        <span class="stat-num">4</span><span class="stat-lbl">Planning</span>
+      </button>
+      <button class="stat-pill active-trip" data-selected="">
+        <span class="stat-num">2</span><span class="stat-lbl">Active</span>
+      </button>
+      <button class="stat-pill done" data-selected="">
+        <span class="stat-num">5</span><span class="stat-lbl">Done</span>
+      </button>
+      <button class="stat-pill cancelled" data-selected="">
+        <span class="stat-num">1</span><span class="stat-lbl">Cancelled</span>
+      </button>
+    </div>
+    <div class="cl-row" style="margin-top:10px">
+      <button class="stat-pill active"><span class="stat-num">12</span><span class="stat-lbl">All</span></button>
+      <button class="stat-pill planning"><span class="stat-num">4</span><span class="stat-lbl">Planning</span></button>
+      <button class="stat-pill active-trip"><span class="stat-num">2</span><span class="stat-lbl">Active</span></button>
+      <button class="stat-pill done"><span class="stat-num">5</span><span class="stat-lbl">Done</span></button>
+      <button class="stat-pill cancelled"><span class="stat-num">1</span><span class="stat-lbl">Cancelled</span></button>
+    </div>
+  </div>
+
+  <!-- 5. Form Inputs -->
+  <div class="cl-section">
+    <div class="cl-section-title">Form Inputs</div>
+    <div class="cl-form-demo">
+      <div>
+        <div class="cl-label" style="margin-bottom:6px">Text Input</div>
+        <input type="text" class="form-input" placeholder="e.g. Tokyo Adventure">
+      </div>
+      <div>
+        <div class="cl-label" style="margin-bottom:6px">Text Input — Error</div>
+        <input type="text" class="form-input error" value="Invalid value">
+      </div>
+      <div>
+        <div class="cl-label" style="margin-bottom:6px">Textarea</div>
+        <textarea class="form-input form-textarea" rows="3" placeholder="Any notes…"></textarea>
+      </div>
+      <div>
+        <div class="cl-label" style="margin-bottom:6px">Select2</div>
+        <select id="demo-select" style="width:100%">
+          <option value="Planning">Planning</option>
+          <option value="Active">Active</option>
+          <option value="Done">Done</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div>
+        <div class="cl-label" style="margin-bottom:6px">Date Picker (Flatpickr)</div>
+        <input type="text" id="demo-date" class="form-input" readonly placeholder="Select date">
+      </div>
+      <div>
+        <div class="cl-label" style="margin-bottom:6px">Date + Time</div>
+        <div class="sf-dt-row">
+          <div style="flex:1">
+            <input type="text" id="demo-date2" class="form-input sf-dt-date" readonly placeholder="Select date">
+          </div>
+          <div class="sf-dt-time-wrap">
+            <svg class="sf-time-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <input type="time" class="form-input sf-dt-time" placeholder="HH:MM">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Trip Cards -->
+  <div class="cl-section">
+    <div class="cl-section-title">Trip Card</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">
+
+      <!-- Planning -->
+      <div class="trip-card status-planning">
+        <div class="trip-card-banner">
+          <span class="badge-planning trip-card-badge">💭 Planning</span>
+        </div>
+        <div class="trip-card-body">
+          <div class="trip-card-name">Tokyo Adventure</div>
+          <div class="trip-card-dest">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Tokyo, Japan
+          </div>
+          <div class="trip-card-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Jul 1 → Jul 14, 2026
+          </div>
+          <div class="trip-card-notes">Cherry blossom season — book hotels early</div>
+        </div>
+        <div class="trip-card-actions">
+          <button class="card-action-btn">✏️ Edit</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
+          <button class="card-action-btn del">🗑️ Delete</button>
+        </div>
+      </div>
+
+      <!-- Active -->
+      <div class="trip-card status-active">
+        <div class="trip-card-banner">
+          <span class="badge-active trip-card-badge">🔥 Active</span>
+        </div>
+        <div class="trip-card-body">
+          <div class="trip-card-name">Paris Weekend</div>
+          <div class="trip-card-dest">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Paris, France
+          </div>
+          <div class="trip-card-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            May 24 → May 27, 2026
+          </div>
+          <div class="trip-card-notes">Eiffel Tower dinner reservation confirmed ✓</div>
+        </div>
+        <div class="trip-card-actions">
+          <button class="card-action-btn">✏️ Edit</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
+          <button class="card-action-btn del">🗑️ Delete</button>
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div class="trip-card status-done">
+        <div class="trip-card-banner">
+          <span class="badge-done trip-card-badge">🌿 Done</span>
+        </div>
+        <div class="trip-card-body">
+          <div class="trip-card-name">Bali Retreat</div>
+          <div class="trip-card-dest">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Bali, Indonesia
+          </div>
+          <div class="trip-card-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Mar 10 → Mar 17, 2026
+          </div>
+          <div class="trip-card-notes">Amazing trip — highly recommend Ubud rice fields</div>
+        </div>
+        <div class="trip-card-actions">
+          <button class="card-action-btn">✏️ Edit</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
+          <button class="card-action-btn del">🗑️ Delete</button>
+        </div>
+      </div>
+
+      <!-- Cancelled -->
+      <div class="trip-card status-cancelled">
+        <div class="trip-card-banner">
+          <span class="badge-cancelled trip-card-badge">🌧️ Cancelled</span>
+        </div>
+        <div class="trip-card-body">
+          <div class="trip-card-name">Chiang Mai Slow</div>
+          <div class="trip-card-dest">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Chiang Mai, Thailand
+          </div>
+          <div class="trip-card-meta">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Jan 5 → Jan 10, 2026
+          </div>
+          <div class="trip-card-notes">Cancelled due to flooding — will reschedule</div>
+        </div>
+        <div class="trip-card-actions">
+          <button class="card-action-btn">✏️ Edit</button>
+          <button class="card-action-btn sched">📅 Schedule</button>
+          <button class="card-action-btn del">🗑️ Delete</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 7. Schedule Timeline -->
+  <div class="cl-section">
+    <div class="cl-section-title">Schedule Timeline</div>
+    <div class="cl-card cl-sched-demo">
+
+      <!-- Confirmed / Active now -->
+      <div class="sched-item">
+        <div class="sched-time-col">
+          <div class="sched-time">09:00</div>
+          <div class="sched-date">Sun 24 May</div>
+        </div>
+        <div class="sched-axis">
+          <div class="sched-dot s-confirmed sched-dot--now"></div>
+          <div class="sched-line"></div>
+        </div>
+        <div class="sched-card s-confirmed">
+          <div class="sched-card-detail">Fly BKK → NRT (TG680)</div>
+          <div class="sched-card-meta">
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              Suvarnabhumi Airport T1
+            </div>
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              ฿15,000
+            </div>
+          </div>
+          <div class="sched-note">Window seat row 24A — online check-in done</div>
+          <div class="sched-card-footer">
+            <span class="sched-badge s-confirmed">🔥 Confirmed</span>
+            <div class="sched-card-actions">
+              <button class="sched-act-btn">Edit</button>
+              <button class="sched-act-btn del">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Planning -->
+      <div class="sched-item">
+        <div class="sched-time-col">
+          <div class="sched-time">16:30</div>
+          <div class="sched-date">Sun 24 May</div>
+        </div>
+        <div class="sched-axis">
+          <div class="sched-dot s-planning"></div>
+          <div class="sched-line"></div>
+        </div>
+        <div class="sched-card s-planning">
+          <div class="sched-card-detail">Check in — Shinjuku Granbell Hotel</div>
+          <div class="sched-card-meta">
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              Shinjuku, Tokyo
+            </div>
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              ฿4,200 / night
+            </div>
+          </div>
+          <div class="sched-note">Need to confirm early check-in request</div>
+          <div class="sched-card-footer">
+            <span class="sched-badge s-planning">💭 Planning</span>
+            <div class="sched-card-actions">
+              <button class="sched-act-btn">Edit</button>
+              <button class="sched-act-btn del">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Done -->
+      <div class="sched-item sched-item--past">
+        <div class="sched-time-col">
+          <div class="sched-time">10:00</div>
+          <div class="sched-date">Mon 25 May</div>
+        </div>
+        <div class="sched-axis">
+          <div class="sched-dot s-done"></div>
+          <div class="sched-line"></div>
+        </div>
+        <div class="sched-card s-done">
+          <div class="sched-card-detail">Visit Senso-ji Temple & Asakusa market</div>
+          <div class="sched-card-meta">
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Asakusa, Tokyo
+            </div>
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              ฿500
+            </div>
+          </div>
+          <div class="sched-note">Bought lucky charm at the temple</div>
+          <div class="sched-card-footer">
+            <span class="sched-badge s-done">🌿 Done</span>
+            <div class="sched-card-actions">
+              <button class="sched-act-btn">Edit</button>
+              <button class="sched-act-btn del">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancelled -->
+      <div class="sched-item">
+        <div class="sched-time-col">
+          <div class="sched-time">14:00</div>
+          <div class="sched-date">Tue 26 May</div>
+        </div>
+        <div class="sched-axis">
+          <div class="sched-dot s-cancelled"></div>
+        </div>
+        <div class="sched-card s-cancelled">
+          <div class="sched-card-detail">Day trip to Nikko National Park</div>
+          <div class="sched-card-meta">
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+              Nikko, Tochigi
+            </div>
+            <div class="sched-meta-row">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              ฿1,200
+            </div>
+          </div>
+          <div class="sched-note">Cancelled — heavy rain forecast</div>
+          <div class="sched-card-footer">
+            <span class="sched-badge s-cancelled">🌧️ Cancelled</span>
+            <div class="sched-card-actions">
+              <button class="sched-act-btn">Edit</button>
+              <button class="sched-act-btn del">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 8. Sheet (static preview) -->
+  <div class="cl-section">
+    <div class="cl-section-title">Sheet / Drawer</div>
+    <div class="cl-row">
+      <div class="cl-col">
+        <div class="cl-label">Structure (static)</div>
+        <div style="border:1.5px solid var(--c-border);border-radius:var(--r);overflow:hidden;width:320px;background:var(--c-surface)">
+          <div class="sheet-handle" style="margin:0 auto;padding-top:10px"></div>
+          <div class="sheet-header" style="padding:12px 16px">
+            <h2 class="sheet-title">Add Trip</h2>
+            <button class="sheet-close">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div style="padding:16px;border-top:1px solid var(--c-border);border-bottom:1px solid var(--c-border)">
+            <input type="text" class="form-input" placeholder="Trip name…" style="margin-bottom:10px">
+            <input type="text" class="form-input" placeholder="Destination…">
+          </div>
+          <div class="sheet-footer">
+            <button class="btn btn-ghost">Cancel</button>
+            <button class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Select2 Variants -->
+  <div class="cl-section">
+    <div class="cl-section-title">Select2 Variants</div>
+    <div class="cl-row">
+      <div class="cl-col">
+        <div class="cl-label">Filter (toolbar)</div>
+        <div class="filter-wrap" style="background:var(--c-surface);padding:8px;border-radius:var(--r-sm);border:1px solid var(--c-border)">
+          <select id="demo-filter" class="filter-select2">
+            <option value="">All Status</option>
+            <option value="Planning">Planning</option>
+            <option value="Active">Active</option>
+          </select>
+        </div>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">Form (sheet body)</div>
+        <div class="sheet-body" style="padding:0;max-height:none;overflow:visible">
+          <select id="demo-form-select">
+            <option value="Planning">Planning</option>
+            <option value="Active">Active</option>
+            <option value="Done">Done</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Shadows & Radius -->
+  <div class="cl-section">
+    <div class="cl-section-title">Shadows & Radius</div>
+    <div class="cl-row">
+      <div class="cl-col">
+        <div class="cl-label">--shadow (card)</div>
+        <div style="width:80px;height:60px;background:var(--c-surface);border-radius:var(--r);box-shadow:var(--shadow)"></div>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">--shadow-lg (sheet)</div>
+        <div style="width:80px;height:60px;background:var(--c-surface);border-radius:var(--r);box-shadow:var(--shadow-lg)"></div>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">--r (16px)</div>
+        <div style="width:80px;height:60px;background:var(--c-primary);border-radius:var(--r)"></div>
+      </div>
+      <div class="cl-col">
+        <div class="cl-label">--r-sm (12px)</div>
+        <div style="width:80px;height:60px;background:var(--c-primary);border-radius:var(--r-sm)"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function($) {
+  'use strict';
+
+  // Select2 — form style
+  $('#demo-select, #demo-form-select').select2({
+    minimumResultsForSearch: Infinity,
+    dropdownParent: $(document.body),
+    width: '100%',
+  });
+
+  // Select2 — filter style
+  $('#demo-filter').select2({
+    minimumResultsForSearch: Infinity,
+    dropdownParent: $(document.body),
+    width: '160px',
+  });
+
+  // Flatpickr
+  flatpickr('#demo-date', {
+    dateFormat: 'Y-m-d', altInput: true, altFormat: 'D d M Y', disableMobile: true,
+  });
+  flatpickr('#demo-date2', {
+    dateFormat: 'Y-m-d', altInput: true, altFormat: 'D d M Y', disableMobile: true,
+  });
+
+}(jQuery));
+</script>
+</body>
+</html>
