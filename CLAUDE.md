@@ -190,6 +190,31 @@ var(--shadow-lg)      /* box-shadow ใหญ่ */
 
 ---
 
+## Oracle Cloud Infrastructure (OCI)
+
+### Key Files (อย่า commit ไฟล์เหล่านี้เด็ดขาด)
+| ไฟล์ | ที่อยู่ |
+|------|--------|
+| OCI CLI config | `~/.oci/config` |
+| API Private key | `~/.oci/oci_api_key.pem` |
+| API Public key | `~/.oci/oci_api_key_public.pem` |
+| SSH Private key | `~/.ssh/id_ed25519` |
+| SSH Public key | `~/.ssh/id_ed25519.pub` |
+| VM create script | `~/Desktop/create-vm.sh` |
+
+### VM Spec
+- **Shape**: VM.Standard.A1.Flex — 2 OCPU, 4GB RAM (Always Free)
+- **Image**: Canonical Ubuntu 22.04
+- **Region**: ap-singapore-1
+- **Tenancy**: tripmanager
+
+### การรัน auto-retry สร้าง VM
+```bash
+caffeinate -i ~/Desktop/create-vm.sh
+```
+
+---
+
 ## Changelog
 
 | วันที่ | การเปลี่ยนแปลง | ไฟล์ที่เกี่ยวข้อง |
